@@ -1,0 +1,58 @@
+import { EmployeeRepository } from '../repositories/employee.repository';
+import { CreateEmployeeDto } from '../dto/create-employee.dto';
+import { UpdateEmployeeDto } from '../dto/update-employee.dto';
+import { FindAllEmployeesDto } from '../dto/find-all-employees.dto';
+import { Prisma, Role } from '@prisma/client';
+export declare class EmployeeService {
+    private repository;
+    constructor(repository: EmployeeRepository);
+    create(createEmployeeDto: CreateEmployeeDto): Promise<{
+        firstName: string;
+        lastName: string;
+        position: string;
+        department: string;
+        joinDate: Date;
+        baseSalary: Prisma.Decimal;
+        id: bigint;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: bigint;
+    }>;
+    findAll(query: FindAllEmployeesDto, userRole: Role): Promise<any[] | {
+        data: any[];
+        meta: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+            hasNext: boolean;
+            hasPrev: boolean;
+        };
+    }>;
+    private transformEmployees;
+    findOne(id: bigint): Promise<any>;
+    update(id: bigint, updateEmployeeDto: UpdateEmployeeDto, userRole: Role, userId: string): Promise<{
+        firstName: string;
+        lastName: string;
+        position: string;
+        department: string;
+        joinDate: Date;
+        baseSalary: Prisma.Decimal;
+        id: bigint;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: bigint;
+    }>;
+    remove(id: bigint, userRole: Role, userId: string): Promise<{
+        firstName: string;
+        lastName: string;
+        position: string;
+        department: string;
+        joinDate: Date;
+        baseSalary: Prisma.Decimal;
+        id: bigint;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: bigint;
+    }>;
+}

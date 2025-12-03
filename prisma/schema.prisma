@@ -1,0 +1,100 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER
+  ADMIN
+  HR
+  MANAGER
+  EMPLOYEE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id        BigInt   @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      Role     @default(EMPLOYEE)
+  employee  Employee?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Employee {
+  id             BigInt        @id @default(autoincrement())
+  userId         BigInt        @unique
+  user           User          @relation(fields: [userId], references: [id])
+  firstName      String
+  lastName       String
+  position       String
+  department     String
+  joinDate       DateTime
+  baseSalary     Decimal
+  attendances    Attendance[]
+  leaveRequests  LeaveRequest[]
+  payrolls       Payroll[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Attendance {
+  id          BigInt           @id @default(autoincrement())
+  employeeId  BigInt
+  employee    Employee         @relation(fields: [employeeId], references: [id])
+  date        DateTime         @db.Date
+  checkIn     DateTime?
+  checkOut    DateTime?
+  status      AttendanceStatus @default(ABSENT)
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model LeaveRequest {
+  id          BigInt      @id @default(autoincrement())
+  employeeId  BigInt
+  employee    Employee    @relation(fields: [employeeId], references: [id])
+  startDate   DateTime
+  endDate     DateTime
+  reason      String
+  status      LeaveStatus @default(PENDING)
+  approvedBy  BigInt?     // User ID of approver
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Payroll {
+  id          BigInt   @id @default(autoincrement())
+  employeeId  BigInt
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  periodStart DateTime
+  periodEnd   DateTime
+  baseSalary  Decimal
+  deductions  Decimal  @default(0)
+  bonuses     Decimal  @default(0)
+  netSalary   Decimal
+  isPaid      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+
