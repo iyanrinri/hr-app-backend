@@ -36,6 +36,8 @@ model User {
   employee  Employee?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("users")
 }
 
 model Employee {
@@ -53,6 +55,8 @@ model Employee {
   payrolls       Payroll[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+
+  @@map("employees")
 }
 
 model Attendance {
@@ -66,6 +70,8 @@ model Attendance {
   notes       String?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+
+  @@map("attendances")
 }
 
 model LeaveRequest {
@@ -79,6 +85,8 @@ model LeaveRequest {
   approvedBy  BigInt?     // User ID of approver
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  @@map("leave_requests")
 }
 
 model Payroll {
@@ -94,6 +102,8 @@ model Payroll {
   isPaid      Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("payrolls")
 }
 
 
