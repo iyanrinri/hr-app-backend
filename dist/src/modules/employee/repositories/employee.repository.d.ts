@@ -17,5 +17,6 @@ export declare class EmployeeRepository {
         where: Prisma.EmployeeWhereUniqueInput;
         data: Prisma.EmployeeUpdateInput;
     }): Promise<Employee>;
-    remove(where: Prisma.EmployeeWhereUniqueInput): Promise<Employee>;
+    softDelete(where: Prisma.EmployeeWhereUniqueInput): Promise<Employee>;
+    restore(where: Prisma.EmployeeWhereUniqueInput): Promise<Employee>;
 }

@@ -20,6 +20,9 @@ let RolesService = class RolesService {
     }
     async getAllUsers() {
         const users = await this.prisma.user.findMany({
+            where: {
+                isDeleted: false,
+            },
             select: {
                 id: true,
                 email: true,
@@ -40,8 +43,11 @@ let RolesService = class RolesService {
         }));
     }
     async getUserById(id) {
-        const user = await this.prisma.user.findUnique({
-            where: { id: BigInt(id) },
+        const user = await this.prisma.user.findFirst({
+            where: {
+                id: BigInt(id),
+                isDeleted: false,
+            },
             select: {
                 id: true,
                 email: true,
@@ -62,15 +68,21 @@ let RolesService = class RolesService {
         };
     }
     async updateUserRole(id, updateUserRoleDto) {
-        const existingUser = await this.prisma.user.findUnique({
-            where: { id: BigInt(id) },
+        const existingUser = await this.prisma.user.findFirst({
+            where: {
+                id: BigInt(id),
+                isDeleted: false,
+            },
         });
         if (!existingUser) {
             throw new common_1.NotFoundException('User not found');
         }
         if (existingUser.role === client_1.Role.SUPER && updateUserRoleDto.role !== client_1.Role.SUPER) {
             const superUserCount = await this.prisma.user.count({
-                where: { role: client_1.Role.SUPER },
+                where: {
+                    role: client_1.Role.SUPER,
+                    isDeleted: false,
+                },
             });
             if (superUserCount <= 1) {
                 throw new common_1.ForbiddenException('Cannot demote the last SUPER user');
@@ -98,22 +110,42 @@ let RolesService = class RolesService {
         };
     }
     async deleteUser(id) {
-        const existingUser = await this.prisma.user.findUnique({
-            where: { id: BigInt(id) },
+        const existingUser = await this.prisma.user.findFirst({
+            where: {
+                id: BigInt(id),
+                isDeleted: false,
+            },
         });
         if (!existingUser) {
             throw new common_1.NotFoundException('User not found');
         }
         if (existingUser.role === 'SUPER') {
             const superUserCount = await this.prisma.user.count({
-                where: { role: 'SUPER' },
+                where: {
+                    role: 'SUPER',
+                    isDeleted: false,
+                },
             });
             if (superUserCount <= 1) {
                 throw new common_1.ForbiddenException('Cannot delete the last SUPER user');
             }
         }
-        await this.prisma.user.delete({
-            where: { id: BigInt(id) },
+        await this.prisma.$transaction(async (tx) => {
+            const now = new Date();
+            await tx.user.update({
+                where: { id: BigInt(id) },
+                data: {
+                    isDeleted: true,
+                    deletedAt: now,
+                },
+            });
+            await tx.employee.updateMany({
+                where: { userId: BigInt(id) },
+                data: {
+                    isDeleted: true,
+                    deletedAt: now,
+                },
+            });
         });
         return { message: 'User deleted successfully' };
     }

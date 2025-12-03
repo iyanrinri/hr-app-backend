@@ -18,23 +18,39 @@ export class EmployeeRepository {
     orderBy?: Prisma.EmployeeOrderByWithRelationInput;
   }): Promise<Employee[]> {
     const { skip, take, cursor, where, orderBy } = params;
+    
+    // Show all employees including soft-deleted ones
+    const whereCondition: Prisma.EmployeeWhereInput = {
+      ...where,
+    };
+    
     return this.prisma.employee.findMany({
       skip,
       take,
       cursor,
-      where,
+      where: whereCondition,
       orderBy,
       include: { user: true },
     });
   }
 
   async count(where?: Prisma.EmployeeWhereInput): Promise<number> {
-    return this.prisma.employee.count({ where });
+    // Count all employees including soft-deleted ones
+    const whereCondition: Prisma.EmployeeWhereInput = {
+      ...where,
+    };
+    return this.prisma.employee.count({ where: whereCondition });
   }
 
   async findOne(where: Prisma.EmployeeWhereUniqueInput): Promise<Employee | null> {
-    return this.prisma.employee.findUnique({
-      where,
+    return this.prisma.employee.findFirst({
+      where: {
+        ...where,
+        isDeleted: false,
+        user: {
+          isDeleted: false,
+        },
+      },
       include: { user: true },
     });
   }
@@ -50,7 +66,74 @@ export class EmployeeRepository {
     });
   }
 
-  async remove(where: Prisma.EmployeeWhereUniqueInput): Promise<Employee> {
-    return this.prisma.employee.delete({ where });
+  async softDelete(where: Prisma.EmployeeWhereUniqueInput): Promise<Employee> {
+    const now = new Date();
+    
+    // First find the employee (including soft-deleted to avoid issues)
+    const employee = await this.prisma.employee.findUnique({
+      where,
+      include: { user: true },
+    });
+    
+    if (!employee) {
+      throw new Error('Employee not found');
+    }
+    
+    // Use transaction to soft delete both employee and user
+    return this.prisma.$transaction(async (tx) => {
+      // Soft delete the user first
+      await tx.user.update({
+        where: { id: employee.userId },
+        data: {
+          isDeleted: true,
+          deletedAt: now,
+        },
+      });
+      
+      // Then soft delete the employee
+      return tx.employee.update({
+        where,
+        data: {
+          isDeleted: true,
+          deletedAt: now,
+        },
+      });
+    });
+  }
+
+  async restore(where: Prisma.EmployeeWhereUniqueInput): Promise<Employee> {
+    // First find the soft-deleted employee
+    const employee = await this.prisma.employee.findFirst({
+      where: {
+        ...where,
+        isDeleted: true,
+      },
+      include: { user: true },
+    });
+    
+    if (!employee) {
+      throw new Error('Employee not found or not deleted');
+    }
+    
+    // Use transaction to restore both employee and user
+    return this.prisma.$transaction(async (tx) => {
+      // Restore the user first
+      await tx.user.update({
+        where: { id: employee.userId },
+        data: {
+          isDeleted: false,
+          deletedAt: null,
+        },
+      });
+      
+      // Then restore the employee
+      return tx.employee.update({
+        where,
+        data: {
+          isDeleted: false,
+          deletedAt: null,
+        },
+      });
+    });
   }
 }

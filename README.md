@@ -151,7 +151,7 @@ npx prisma db seed
 
 **Default seeded users:**
 - **Admin**: `admin@company.com` / `admin123` (SUPER role)
-- **HR User**: `hr@company.com` / `hr123` (HR role)
+- **HR User**: `hr@company.com` / `passwordhr123` (HR role)
 - **Sample Employees**: Various test employees
 
 ### 6. Start Application

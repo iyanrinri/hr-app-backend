@@ -18,7 +18,7 @@ async function main() {
     data: {
       email: adminEmail,
       password: adminPassword,
-      role: Role.ADMIN,
+      role: Role.SUPER,
     },
   });
 
@@ -53,7 +53,7 @@ async function main() {
 
   // Create HR User & Profile
   const hrEmail = 'hr@company.com';
-  const hrPassword = await bcrypt.hash('hr123', 10);
+  const hrPassword = await bcrypt.hash('passwordhr123', 10);
 
   const hrUser = await prisma.user.create({
     data: {

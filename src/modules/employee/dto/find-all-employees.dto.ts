@@ -1,4 +1,4 @@
-import { IsOptional, IsInt, Min } from 'class-validator';
+import { IsOptional, IsInt, Min, IsString, IsIn } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -37,4 +37,23 @@ export class FindAllEmployeesDto {
   @IsInt()
   @Min(1)
   limit?: number = 10;
+
+  @ApiPropertyOptional({
+    description: 'Search term for firstName, lastName, email, position, or department',
+    example: 'john',
+    type: String
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter by employee status',
+    enum: ['active', 'inactive'],
+    example: 'active'
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(['active', 'inactive'])
+  status?: string;
 }

@@ -9,7 +9,6 @@ datasource db {
 
 enum Role {
   SUPER
-  ADMIN
   HR
   MANAGER
   EMPLOYEE
@@ -34,6 +33,8 @@ model User {
   password  String
   role      Role     @default(EMPLOYEE)
   employee  Employee?
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -53,6 +54,8 @@ model Employee {
   attendances    Attendance[]
   leaveRequests  LeaveRequest[]
   payrolls       Payroll[]
+  isDeleted      Boolean       @default(false)
+  deletedAt      DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 

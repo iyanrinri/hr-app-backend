@@ -53,19 +53,38 @@ export class EmployeeService {
   }
 
   async findAll(query: FindAllEmployeesDto, userRole: Role) {
-    // Determine role filter based on user role
-    let roleFilter = {};
+    // Build base filter conditions
+    let whereCondition: any = {};
+
+    // Role filter based on user role
     if (userRole === Role.HR) {
-      // HR can only see EMPLOYEE, MANAGER roles (exclude SUPER, ADMIN, HR)
-      roleFilter = {
-        user: {
-          role: {
-            in: [Role.EMPLOYEE, Role.MANAGER]
-          }
+      // HR can only see EMPLOYEE, MANAGER roles (exclude SUPER, HR)
+      whereCondition.user = {
+        role: {
+          notIn: [Role.SUPER, Role.HR]
         }
       };
     }
-    // SUPER can see all roles (no filter applied)
+
+    // Status filter
+    if (query.status === 'active') {
+      whereCondition.isDeleted = false;
+    } else if (query.status === 'inactive') {
+      whereCondition.isDeleted = true;
+    }
+    // If no status filter, show all (active and inactive)
+
+    // Search filter
+    if (query.search) {
+      const searchTerm = query.search.toLowerCase();
+      whereCondition.OR = [
+        { firstName: { contains: searchTerm, mode: 'insensitive' } },
+        { lastName: { contains: searchTerm, mode: 'insensitive' } },
+        { position: { contains: searchTerm, mode: 'insensitive' } },
+        { department: { contains: searchTerm, mode: 'insensitive' } },
+        { user: { email: { contains: searchTerm, mode: 'insensitive' } } }
+      ];
+    }
 
     let employees;
     let total = 0;
@@ -77,12 +96,12 @@ export class EmployeeService {
       const skip = (page - 1) * limit;
 
       // Get total count for pagination meta
-      total = await this.repository.count(roleFilter);
+      total = await this.repository.count(whereCondition);
 
       employees = await this.repository.findAll({
         skip,
         take: limit,
-        where: roleFilter,
+        where: whereCondition,
         orderBy: { createdAt: 'desc' }
       });
 
@@ -100,7 +119,7 @@ export class EmployeeService {
     } else {
       // Non-paginated response (all employees)
       employees = await this.repository.findAll({
-        where: roleFilter,
+        where: whereCondition,
         orderBy: { createdAt: 'desc' }
       });
 
@@ -118,11 +137,13 @@ export class EmployeeService {
         userId: emp.userId.toString(),
         joinDate: emp.joinDate instanceof Date ? emp.joinDate.toISOString() : emp.joinDate,
         baseSalary: emp.baseSalary ? parseFloat(emp.baseSalary.toString()) : null,
+        deletedAt: emp.deletedAt instanceof Date ? emp.deletedAt.toISOString() : emp.deletedAt,
         createdAt: emp.createdAt instanceof Date ? emp.createdAt.toISOString() : emp.createdAt,
         updatedAt: emp.updatedAt instanceof Date ? emp.updatedAt.toISOString() : emp.updatedAt,
         user: emp.user ? {
           ...emp.user,
           id: emp.user.id.toString(),
+          deletedAt: emp.user.deletedAt instanceof Date ? emp.user.deletedAt.toISOString() : emp.user.deletedAt,
           createdAt: emp.user.createdAt instanceof Date ? emp.user.createdAt.toISOString() : emp.user.createdAt,
           updatedAt: emp.user.updatedAt instanceof Date ? emp.user.updatedAt.toISOString() : emp.user.updatedAt,
         } : null
@@ -144,11 +165,13 @@ export class EmployeeService {
       userId: emp.userId.toString(),
       joinDate: emp.joinDate instanceof Date ? emp.joinDate.toISOString() : emp.joinDate,
       baseSalary: emp.baseSalary ? parseFloat(emp.baseSalary.toString()) : null,
+      deletedAt: emp.deletedAt instanceof Date ? emp.deletedAt.toISOString() : emp.deletedAt,
       createdAt: emp.createdAt instanceof Date ? emp.createdAt.toISOString() : emp.createdAt,
       updatedAt: emp.updatedAt instanceof Date ? emp.updatedAt.toISOString() : emp.updatedAt,
       user: emp.user ? {
         ...emp.user,
         id: emp.user.id.toString(),
+        deletedAt: emp.user.deletedAt instanceof Date ? emp.user.deletedAt.toISOString() : emp.user.deletedAt,
         createdAt: emp.user.createdAt instanceof Date ? emp.user.createdAt.toISOString() : emp.user.createdAt,
         updatedAt: emp.user.updatedAt instanceof Date ? emp.user.updatedAt.toISOString() : emp.user.updatedAt,
       } : null
@@ -208,6 +231,30 @@ export class EmployeeService {
       }
     }
 
-    return this.repository.remove({ id });
+    return this.repository.softDelete({ id });
+  }
+
+  async restore(id: bigint) {
+    try {
+      const restoredEmployee = await this.repository.restore({ id });
+      
+      // Transform the response using the same logic as findOne
+      const emp = restoredEmployee as any;
+      return {
+        ...emp,
+        id: emp.id.toString(),
+        userId: emp.userId.toString(),
+        joinDate: emp.joinDate instanceof Date ? emp.joinDate.toISOString() : emp.joinDate,
+        baseSalary: emp.baseSalary ? parseFloat(emp.baseSalary.toString()) : null,
+        deletedAt: emp.deletedAt instanceof Date ? emp.deletedAt.toISOString() : emp.deletedAt,
+        createdAt: emp.createdAt instanceof Date ? emp.createdAt.toISOString() : emp.createdAt,
+        updatedAt: emp.updatedAt instanceof Date ? emp.updatedAt.toISOString() : emp.updatedAt,
+      };
+    } catch (error) {
+      if (error.message === 'Employee not found or not deleted') {
+        throw new NotFoundException('Employee not found or not deleted');
+      }
+      throw error;
+    }
   }
 }

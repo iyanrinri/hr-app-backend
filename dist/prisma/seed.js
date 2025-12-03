@@ -48,7 +48,7 @@ async function main() {
         data: {
             email: adminEmail,
             password: adminPassword,
-            role: client_1.Role.ADMIN,
+            role: client_1.Role.SUPER,
         },
     });
     console.log({ admin });
@@ -76,7 +76,7 @@ async function main() {
     });
     console.log({ employeeUser });
     const hrEmail = 'hr@company.com';
-    const hrPassword = await bcrypt.hash('hr123', 10);
+    const hrPassword = await bcrypt.hash('passwordhr123', 10);
     const hrUser = await prisma.user.create({
         data: {
             email: hrEmail,

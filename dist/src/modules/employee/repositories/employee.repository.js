@@ -22,21 +22,33 @@ let EmployeeRepository = class EmployeeRepository {
     }
     async findAll(params) {
         const { skip, take, cursor, where, orderBy } = params;
+        const whereCondition = {
+            ...where,
+        };
         return this.prisma.employee.findMany({
             skip,
             take,
             cursor,
-            where,
+            where: whereCondition,
             orderBy,
             include: { user: true },
         });
     }
     async count(where) {
-        return this.prisma.employee.count({ where });
+        const whereCondition = {
+            ...where,
+        };
+        return this.prisma.employee.count({ where: whereCondition });
     }
     async findOne(where) {
-        return this.prisma.employee.findUnique({
-            where,
+        return this.prisma.employee.findFirst({
+            where: {
+                ...where,
+                isDeleted: false,
+                user: {
+                    isDeleted: false,
+                },
+            },
             include: { user: true },
         });
     }
@@ -47,8 +59,59 @@ let EmployeeRepository = class EmployeeRepository {
             where,
         });
     }
-    async remove(where) {
-        return this.prisma.employee.delete({ where });
+    async softDelete(where) {
+        const now = new Date();
+        const employee = await this.prisma.employee.findUnique({
+            where,
+            include: { user: true },
+        });
+        if (!employee) {
+            throw new Error('Employee not found');
+        }
+        return this.prisma.$transaction(async (tx) => {
+            await tx.user.update({
+                where: { id: employee.userId },
+                data: {
+                    isDeleted: true,
+                    deletedAt: now,
+                },
+            });
+            return tx.employee.update({
+                where,
+                data: {
+                    isDeleted: true,
+                    deletedAt: now,
+                },
+            });
+        });
+    }
+    async restore(where) {
+        const employee = await this.prisma.employee.findFirst({
+            where: {
+                ...where,
+                isDeleted: true,
+            },
+            include: { user: true },
+        });
+        if (!employee) {
+            throw new Error('Employee not found or not deleted');
+        }
+        return this.prisma.$transaction(async (tx) => {
+            await tx.user.update({
+                where: { id: employee.userId },
+                data: {
+                    isDeleted: false,
+                    deletedAt: null,
+                },
+            });
+            return tx.employee.update({
+                where,
+                data: {
+                    isDeleted: false,
+                    deletedAt: null,
+                },
+            });
+        });
     }
 };
 exports.EmployeeRepository = EmployeeRepository;

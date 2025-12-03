@@ -9,6 +9,9 @@ export class RolesService {
 
   async getAllUsers() {
     const users = await this.prisma.user.findMany({
+      where: {
+        isDeleted: false,
+      },
       select: {
         id: true,
         email: true,
@@ -31,8 +34,11 @@ export class RolesService {
   }
 
   async getUserById(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: BigInt(id) },
+    const user = await this.prisma.user.findFirst({
+      where: { 
+        id: BigInt(id),
+        isDeleted: false,
+      },
       select: {
         id: true,
         email: true,
@@ -56,9 +62,12 @@ export class RolesService {
   }
 
   async updateUserRole(id: string, updateUserRoleDto: UpdateUserRoleDto) {
-    // Check if user exists
-    const existingUser = await this.prisma.user.findUnique({
-      where: { id: BigInt(id) },
+    // Check if user exists and is not soft-deleted
+    const existingUser = await this.prisma.user.findFirst({
+      where: { 
+        id: BigInt(id),
+        isDeleted: false,
+      },
     });
 
     if (!existingUser) {
@@ -68,7 +77,10 @@ export class RolesService {
     // Prevent demoting the last SUPER user
     if (existingUser.role === Role.SUPER && updateUserRoleDto.role !== Role.SUPER) {
       const superUserCount = await this.prisma.user.count({
-        where: { role: Role.SUPER },
+        where: { 
+          role: Role.SUPER,
+          isDeleted: false,
+        },
       });
 
       if (superUserCount <= 1) {
@@ -100,8 +112,11 @@ export class RolesService {
   }
 
   async deleteUser(id: string) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { id: BigInt(id) },
+    const existingUser = await this.prisma.user.findFirst({
+      where: { 
+        id: BigInt(id),
+        isDeleted: false,
+      },
     });
 
     if (!existingUser) {
@@ -111,7 +126,10 @@ export class RolesService {
     // Prevent deleting SUPER users
     if (existingUser.role === 'SUPER') {
       const superUserCount = await this.prisma.user.count({
-        where: { role: 'SUPER' },
+        where: { 
+          role: 'SUPER',
+          isDeleted: false,
+        },
       });
 
       if (superUserCount <= 1) {
@@ -119,8 +137,27 @@ export class RolesService {
       }
     }
 
-    await this.prisma.user.delete({
-      where: { id: BigInt(id) },
+    // Soft delete the user and associated employee
+    await this.prisma.$transaction(async (tx) => {
+      const now = new Date();
+      
+      // First soft delete the user
+      await tx.user.update({
+        where: { id: BigInt(id) },
+        data: {
+          isDeleted: true,
+          deletedAt: now,
+        },
+      });
+      
+      // Then soft delete associated employee if exists
+      await tx.employee.updateMany({
+        where: { userId: BigInt(id) },
+        data: {
+          isDeleted: true,
+          deletedAt: now,
+        },
+      });
     });
 
     return { message: 'User deleted successfully' };

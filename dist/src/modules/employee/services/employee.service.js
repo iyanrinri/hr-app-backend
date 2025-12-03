@@ -90,15 +90,29 @@ let EmployeeService = class EmployeeService {
         }
     }
     async findAll(query, userRole) {
-        let roleFilter = {};
+        let whereCondition = {};
         if (userRole === client_1.Role.HR) {
-            roleFilter = {
-                user: {
-                    role: {
-                        in: [client_1.Role.EMPLOYEE, client_1.Role.MANAGER]
-                    }
+            whereCondition.user = {
+                role: {
+                    notIn: [client_1.Role.SUPER, client_1.Role.HR]
                 }
             };
+        }
+        if (query.status === 'active') {
+            whereCondition.isDeleted = false;
+        }
+        else if (query.status === 'inactive') {
+            whereCondition.isDeleted = true;
+        }
+        if (query.search) {
+            const searchTerm = query.search.toLowerCase();
+            whereCondition.OR = [
+                { firstName: { contains: searchTerm, mode: 'insensitive' } },
+                { lastName: { contains: searchTerm, mode: 'insensitive' } },
+                { position: { contains: searchTerm, mode: 'insensitive' } },
+                { department: { contains: searchTerm, mode: 'insensitive' } },
+                { user: { email: { contains: searchTerm, mode: 'insensitive' } } }
+            ];
         }
         let employees;
         let total = 0;
@@ -106,11 +120,11 @@ let EmployeeService = class EmployeeService {
             const page = query.page || 1;
             const limit = query.limit || 10;
             const skip = (page - 1) * limit;
-            total = await this.repository.count(roleFilter);
+            total = await this.repository.count(whereCondition);
             employees = await this.repository.findAll({
                 skip,
                 take: limit,
-                where: roleFilter,
+                where: whereCondition,
                 orderBy: { createdAt: 'desc' }
             });
             return {
@@ -127,7 +141,7 @@ let EmployeeService = class EmployeeService {
         }
         else {
             employees = await this.repository.findAll({
-                where: roleFilter,
+                where: whereCondition,
                 orderBy: { createdAt: 'desc' }
             });
             return this.transformEmployees(employees);
@@ -142,11 +156,13 @@ let EmployeeService = class EmployeeService {
                 userId: emp.userId.toString(),
                 joinDate: emp.joinDate instanceof Date ? emp.joinDate.toISOString() : emp.joinDate,
                 baseSalary: emp.baseSalary ? parseFloat(emp.baseSalary.toString()) : null,
+                deletedAt: emp.deletedAt instanceof Date ? emp.deletedAt.toISOString() : emp.deletedAt,
                 createdAt: emp.createdAt instanceof Date ? emp.createdAt.toISOString() : emp.createdAt,
                 updatedAt: emp.updatedAt instanceof Date ? emp.updatedAt.toISOString() : emp.updatedAt,
                 user: emp.user ? {
                     ...emp.user,
                     id: emp.user.id.toString(),
+                    deletedAt: emp.user.deletedAt instanceof Date ? emp.user.deletedAt.toISOString() : emp.user.deletedAt,
                     createdAt: emp.user.createdAt instanceof Date ? emp.user.createdAt.toISOString() : emp.user.createdAt,
                     updatedAt: emp.user.updatedAt instanceof Date ? emp.user.updatedAt.toISOString() : emp.user.updatedAt,
                 } : null
@@ -165,11 +181,13 @@ let EmployeeService = class EmployeeService {
             userId: emp.userId.toString(),
             joinDate: emp.joinDate instanceof Date ? emp.joinDate.toISOString() : emp.joinDate,
             baseSalary: emp.baseSalary ? parseFloat(emp.baseSalary.toString()) : null,
+            deletedAt: emp.deletedAt instanceof Date ? emp.deletedAt.toISOString() : emp.deletedAt,
             createdAt: emp.createdAt instanceof Date ? emp.createdAt.toISOString() : emp.createdAt,
             updatedAt: emp.updatedAt instanceof Date ? emp.updatedAt.toISOString() : emp.updatedAt,
             user: emp.user ? {
                 ...emp.user,
                 id: emp.user.id.toString(),
+                deletedAt: emp.user.deletedAt instanceof Date ? emp.user.deletedAt.toISOString() : emp.user.deletedAt,
                 createdAt: emp.user.createdAt instanceof Date ? emp.user.createdAt.toISOString() : emp.user.createdAt,
                 updatedAt: emp.user.updatedAt instanceof Date ? emp.user.updatedAt.toISOString() : emp.user.updatedAt,
             } : null
@@ -211,7 +229,29 @@ let EmployeeService = class EmployeeService {
                 throw new common_1.ForbiddenException('HR users cannot delete their own employee record');
             }
         }
-        return this.repository.remove({ id });
+        return this.repository.softDelete({ id });
+    }
+    async restore(id) {
+        try {
+            const restoredEmployee = await this.repository.restore({ id });
+            const emp = restoredEmployee;
+            return {
+                ...emp,
+                id: emp.id.toString(),
+                userId: emp.userId.toString(),
+                joinDate: emp.joinDate instanceof Date ? emp.joinDate.toISOString() : emp.joinDate,
+                baseSalary: emp.baseSalary ? parseFloat(emp.baseSalary.toString()) : null,
+                deletedAt: emp.deletedAt instanceof Date ? emp.deletedAt.toISOString() : emp.deletedAt,
+                createdAt: emp.createdAt instanceof Date ? emp.createdAt.toISOString() : emp.createdAt,
+                updatedAt: emp.updatedAt instanceof Date ? emp.updatedAt.toISOString() : emp.updatedAt,
+            };
+        }
+        catch (error) {
+            if (error.message === 'Employee not found or not deleted') {
+                throw new common_1.NotFoundException('Employee not found or not deleted');
+            }
+            throw error;
+        }
     }
 };
 exports.EmployeeService = EmployeeService;

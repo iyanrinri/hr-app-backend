@@ -13,8 +13,11 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
+    const user = await this.prisma.user.findFirst({
+      where: { 
+        email,
+        isDeleted: false,
+      },
     });
 
     if (user && await bcrypt.compare(password, user.password)) {
@@ -48,13 +51,45 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    // Check if user already exists
+    // Check if user already exists (including soft-deleted)
     const existingUser = await this.prisma.user.findUnique({
       where: { email: registerDto.email },
     });
 
-    if (existingUser) {
+    if (existingUser && !existingUser.isDeleted) {
       throw new ConflictException('User with this email already exists');
+    }
+    
+    // If user is soft-deleted, we can reactivate them
+    if (existingUser && existingUser.isDeleted) {
+      const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+      
+      const user = await this.prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          password: hashedPassword,
+          role: registerDto.role,
+          isDeleted: false,
+          deletedAt: null,
+        },
+      });
+      
+      const { password: _, ...userWithoutPassword } = user;
+      
+      const payload = { 
+        sub: user.id.toString(), 
+        email: user.email, 
+        role: user.role 
+      };
+      
+      return {
+        accessToken: this.jwtService.sign(payload),
+        user: {
+          id: userWithoutPassword.id.toString(),
+          email: userWithoutPassword.email,
+          role: userWithoutPassword.role,
+        },
+      };
     }
 
     // Hash password
@@ -88,8 +123,11 @@ export class AuthService {
   }
 
   async getProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: BigInt(userId) },
+    const user = await this.prisma.user.findFirst({
+      where: { 
+        id: BigInt(userId),
+        isDeleted: false,
+      },
       select: {
         id: true,
         email: true,

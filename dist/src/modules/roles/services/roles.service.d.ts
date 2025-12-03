@@ -28,7 +28,7 @@ export declare class RolesService {
         message: string;
     }>;
     getAllRoles(): {
-        value: "SUPER" | "ADMIN" | "HR" | "MANAGER" | "EMPLOYEE";
+        value: "SUPER" | "HR" | "MANAGER" | "EMPLOYEE";
         label: string;
     }[];
 }

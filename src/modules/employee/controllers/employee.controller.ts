@@ -33,9 +33,11 @@ export class EmployeeController {
   @ApiQuery({ name: 'paginated', required: false, type: Number, description: 'Enable pagination (1 for paginated, 0 or omit for all)' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (only when paginated=1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (only when paginated=1)' })
+  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search term for firstName, lastName, email, position, or department' })
+  @ApiQuery({ name: 'status', required: false, enum: ['active', 'inactive'], description: 'Filter by employee status (active = deletedAt null, inactive = deletedAt not null)' })
   @ApiResponse({ 
     status: 200, 
-    description: 'Return employees based on role and pagination.',
+    description: 'Return employees based on role, pagination, search, and status filter.',
     type: [Object],
     schema: {
       oneOf: [
@@ -79,5 +81,16 @@ export class EmployeeController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     return this.employeeService.remove(BigInt(id), req.user.role, req.user.sub);
+  }
+
+  @Patch(':id/restore')
+  @ApiOperation({ summary: 'Restore soft-deleted employee (SUPER only)' })
+  @ApiResponse({ status: 200, description: 'The employee has been successfully restored.' })
+  @ApiResponse({ status: 404, description: 'Employee not found or not deleted.' })
+  @ApiResponse({ status: 403, description: 'Forbidden - SUPER role required.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @Roles(Role.SUPER)
+  restore(@Param('id', ParseIntPipe) id: number) {
+    return this.employeeService.restore(BigInt(id));
   }
 }

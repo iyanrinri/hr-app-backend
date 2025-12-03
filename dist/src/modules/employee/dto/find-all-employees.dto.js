@@ -17,6 +17,8 @@ class FindAllEmployeesDto {
     paginated;
     page = 1;
     limit = 10;
+    search;
+    status;
 }
 exports.FindAllEmployeesDto = FindAllEmployeesDto;
 __decorate([
@@ -57,4 +59,25 @@ __decorate([
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], FindAllEmployeesDto.prototype, "limit", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Search term for firstName, lastName, email, position, or department',
+        example: 'john',
+        type: String
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], FindAllEmployeesDto.prototype, "search", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filter by employee status',
+        enum: ['active', 'inactive'],
+        example: 'active'
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsIn)(['active', 'inactive']),
+    __metadata("design:type", String)
+], FindAllEmployeesDto.prototype, "status", void 0);
 //# sourceMappingURL=find-all-employees.dto.js.map

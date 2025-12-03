@@ -28,7 +28,7 @@ export declare class RolesController {
         message: string;
     }>;
     getAllRoles(): Promise<{
-        value: "SUPER" | "ADMIN" | "HR" | "MANAGER" | "EMPLOYEE";
+        value: "SUPER" | "HR" | "MANAGER" | "EMPLOYEE";
         label: string;
     }[]>;
 }

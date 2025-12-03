@@ -55,8 +55,11 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
     }
     async validateUser(email, password) {
-        const user = await this.prisma.user.findUnique({
-            where: { email },
+        const user = await this.prisma.user.findFirst({
+            where: {
+                email,
+                isDeleted: false,
+            },
         });
         if (user && await bcrypt.compare(password, user.password)) {
             const { password: _, ...result } = user;
@@ -87,8 +90,34 @@ let AuthService = class AuthService {
         const existingUser = await this.prisma.user.findUnique({
             where: { email: registerDto.email },
         });
-        if (existingUser) {
+        if (existingUser && !existingUser.isDeleted) {
             throw new common_1.ConflictException('User with this email already exists');
+        }
+        if (existingUser && existingUser.isDeleted) {
+            const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+            const user = await this.prisma.user.update({
+                where: { id: existingUser.id },
+                data: {
+                    password: hashedPassword,
+                    role: registerDto.role,
+                    isDeleted: false,
+                    deletedAt: null,
+                },
+            });
+            const { password: _, ...userWithoutPassword } = user;
+            const payload = {
+                sub: user.id.toString(),
+                email: user.email,
+                role: user.role
+            };
+            return {
+                accessToken: this.jwtService.sign(payload),
+                user: {
+                    id: userWithoutPassword.id.toString(),
+                    email: userWithoutPassword.email,
+                    role: userWithoutPassword.role,
+                },
+            };
         }
         const hashedPassword = await bcrypt.hash(registerDto.password, 10);
         const user = await this.prisma.user.create({
@@ -114,8 +143,11 @@ let AuthService = class AuthService {
         };
     }
     async getProfile(userId) {
-        const user = await this.prisma.user.findUnique({
-            where: { id: BigInt(userId) },
+        const user = await this.prisma.user.findFirst({
+            where: {
+                id: BigInt(userId),
+                isDeleted: false,
+            },
             select: {
                 id: true,
                 email: true,

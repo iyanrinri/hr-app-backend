@@ -43,6 +43,9 @@ let EmployeeController = class EmployeeController {
     remove(id, req) {
         return this.employeeService.remove(BigInt(id), req.user.role, req.user.sub);
     }
+    restore(id) {
+        return this.employeeService.restore(BigInt(id));
+    }
 };
 exports.EmployeeController = EmployeeController;
 __decorate([
@@ -63,9 +66,11 @@ __decorate([
     (0, swagger_1.ApiQuery)({ name: 'paginated', required: false, type: Number, description: 'Enable pagination (1 for paginated, 0 or omit for all)' }),
     (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number, description: 'Page number (only when paginated=1)' }),
     (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number, description: 'Items per page (only when paginated=1)' }),
+    (0, swagger_1.ApiQuery)({ name: 'search', required: false, type: String, description: 'Search term for firstName, lastName, email, position, or department' }),
+    (0, swagger_1.ApiQuery)({ name: 'status', required: false, enum: ['active', 'inactive'], description: 'Filter by employee status (active = deletedAt null, inactive = deletedAt not null)' }),
     (0, swagger_1.ApiResponse)({
         status: 200,
-        description: 'Return employees based on role and pagination.',
+        description: 'Return employees based on role, pagination, search, and status filter.',
         type: [Object],
         schema: {
             oneOf: [
@@ -122,6 +127,19 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", void 0)
 ], EmployeeController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Patch)(':id/restore'),
+    (0, swagger_1.ApiOperation)({ summary: 'Restore soft-deleted employee (SUPER only)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'The employee has been successfully restored.' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee not found or not deleted.' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden - SUPER role required.' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized.' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.SUPER),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], EmployeeController.prototype, "restore", null);
 exports.EmployeeController = EmployeeController = __decorate([
     (0, swagger_1.ApiTags)('employees'),
     (0, common_1.Controller)('employees'),
