@@ -196,11 +196,47 @@ export class EmployeeService {
       }
     }
 
-    const { email, ...data } = updateEmployeeDto as any; // Handle email update separately if needed
-    return this.repository.update({
-      where: { id },
-      data: data,
-    });
+    const { email, password, ...employeeData } = updateEmployeeDto;
+
+    // Prepare update data for employee table
+    const updateData: any = {};
+    
+    // Only add fields that are provided
+    if (employeeData.firstName !== undefined) updateData.firstName = employeeData.firstName;
+    if (employeeData.lastName !== undefined) updateData.lastName = employeeData.lastName;
+    if (employeeData.position !== undefined) updateData.position = employeeData.position;
+    if (employeeData.department !== undefined) updateData.department = employeeData.department;
+    if (employeeData.baseSalary !== undefined) updateData.baseSalary = employeeData.baseSalary;
+
+    // Prepare user update data if email or password is provided
+    let userUpdateData: any = {};
+    if (email !== undefined) {
+      userUpdateData.email = email;
+    }
+    if (password !== undefined && password.trim() !== '') {
+      // Hash the new password if provided
+      userUpdateData.password = await bcrypt.hash(password, 10);
+    }
+
+    // If there's user data to update, include it in the update
+    if (Object.keys(userUpdateData).length > 0) {
+      updateData.user = {
+        update: userUpdateData
+      };
+    }
+
+    try {
+      return await this.repository.update({
+        where: { id },
+        data: updateData,
+      });
+    } catch (error) {
+      const meta = parsePrismaError(error);
+      if (meta?.code === 409) {
+        throw new ConflictException(meta.message);
+      }
+      throw error;
+    }
   }
 
   async remove(id: bigint, userRole: Role, userId: string) {

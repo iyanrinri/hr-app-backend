@@ -51,6 +51,40 @@ exports.EmployeeController = EmployeeController;
 __decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: 'Create employee (SUPER/HR only)' }),
+    (0, swagger_1.ApiBody)({
+        type: create_employee_dto_1.CreateEmployeeDto,
+        description: 'Employee creation data',
+        examples: {
+            example1: {
+                summary: 'Software Engineer Example',
+                description: 'Example of creating a software engineer employee',
+                value: {
+                    email: 'jane.smith@company.com',
+                    password: 'SecurePassword123!',
+                    firstName: 'Jane',
+                    lastName: 'Smith',
+                    position: 'Software Engineer',
+                    department: 'Engineering',
+                    joinDate: '2024-01-15T00:00:00Z',
+                    baseSalary: 75000
+                }
+            },
+            example2: {
+                summary: 'HR Manager Example',
+                description: 'Example of creating an HR manager employee',
+                value: {
+                    email: 'mike.johnson@company.com',
+                    password: 'HRPassword456!',
+                    firstName: 'Mike',
+                    lastName: 'Johnson',
+                    position: 'HR Manager',
+                    department: 'Human Resources',
+                    joinDate: '2024-02-01T00:00:00Z',
+                    baseSalary: 85000
+                }
+            }
+        }
+    }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'The employee has been successfully created.' }),
     (0, swagger_1.ApiResponse)({ status: 409, description: 'User with this email already exists.' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized.' }),
@@ -102,6 +136,58 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Update employee (SUPER/HR only)' }),
+    (0, swagger_1.ApiBody)({
+        type: update_employee_dto_1.UpdateEmployeeDto,
+        description: 'Employee update data (all fields are optional)',
+        examples: {
+            updatePosition: {
+                summary: 'Update Position & Salary',
+                description: 'Update employee position and salary',
+                value: {
+                    position: 'Senior Software Engineer',
+                    baseSalary: 95000
+                }
+            },
+            updateDepartment: {
+                summary: 'Department Transfer',
+                description: 'Move employee to different department with new position',
+                value: {
+                    department: 'DevOps',
+                    position: 'DevOps Engineer',
+                    baseSalary: 90000
+                }
+            },
+            updatePersonal: {
+                summary: 'Update Personal Info',
+                description: 'Update personal information and contact details',
+                value: {
+                    firstName: 'Jane',
+                    lastName: 'Smith-Johnson',
+                    email: 'jane.smith-johnson@company.com'
+                }
+            },
+            updatePassword: {
+                summary: 'Change Password',
+                description: 'Update employee password (leave empty if no change needed)',
+                value: {
+                    password: 'NewSecurePassword123!'
+                }
+            },
+            updateComplete: {
+                summary: 'Complete Update',
+                description: 'Update multiple fields at once',
+                value: {
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    email: 'john.doe.updated@company.com',
+                    position: 'Lead Software Engineer',
+                    department: 'Engineering',
+                    baseSalary: 105000,
+                    password: 'UpdatedPassword123!'
+                }
+            }
+        }
+    }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'The employee has been successfully updated.' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee not found.' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden - HR cannot edit SUPER/HR roles.' }),

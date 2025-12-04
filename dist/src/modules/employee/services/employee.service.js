@@ -204,11 +204,43 @@ let EmployeeService = class EmployeeService {
                 throw new common_1.ForbiddenException('HR users cannot edit SUPER or HR role employees');
             }
         }
-        const { email, ...data } = updateEmployeeDto;
-        return this.repository.update({
-            where: { id },
-            data: data,
-        });
+        const { email, password, ...employeeData } = updateEmployeeDto;
+        const updateData = {};
+        if (employeeData.firstName !== undefined)
+            updateData.firstName = employeeData.firstName;
+        if (employeeData.lastName !== undefined)
+            updateData.lastName = employeeData.lastName;
+        if (employeeData.position !== undefined)
+            updateData.position = employeeData.position;
+        if (employeeData.department !== undefined)
+            updateData.department = employeeData.department;
+        if (employeeData.baseSalary !== undefined)
+            updateData.baseSalary = employeeData.baseSalary;
+        let userUpdateData = {};
+        if (email !== undefined) {
+            userUpdateData.email = email;
+        }
+        if (password !== undefined && password.trim() !== '') {
+            userUpdateData.password = await bcrypt.hash(password, 10);
+        }
+        if (Object.keys(userUpdateData).length > 0) {
+            updateData.user = {
+                update: userUpdateData
+            };
+        }
+        try {
+            return await this.repository.update({
+                where: { id },
+                data: updateData,
+            });
+        }
+        catch (error) {
+            const meta = parsePrismaError(error);
+            if (meta?.code === 409) {
+                throw new common_1.ConflictException(meta.message);
+            }
+            throw error;
+        }
     }
     async remove(id, userRole, userId) {
         const employee = await this.repository.findOne({ id });
