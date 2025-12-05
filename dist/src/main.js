@@ -19,10 +19,24 @@ async function bootstrap() {
         .setTitle('HR App API')
         .setDescription('The HR Application API description')
         .setVersion('1.0')
-        .addBearerAuth()
+        .addBearerAuth({
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+    }, 'JWT-auth')
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, config);
-    swagger_1.SwaggerModule.setup('api', app, document);
+    swagger_1.SwaggerModule.setup('api', app, document, {
+        swaggerOptions: {
+            persistAuthorization: true,
+            docExpansion: 'list',
+            filter: true,
+            showRequestDuration: true,
+        },
+    });
     await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

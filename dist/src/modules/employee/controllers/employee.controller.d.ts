@@ -6,17 +6,17 @@ export declare class EmployeeController {
     private readonly employeeService;
     constructor(employeeService: EmployeeService);
     create(createEmployeeDto: CreateEmployeeDto): Promise<{
+        id: bigint;
+        isDeleted: boolean;
+        deletedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         firstName: string;
         lastName: string;
         position: string;
         department: string;
         joinDate: Date;
         baseSalary: import("@prisma/client-runtime-utils").Decimal;
-        id: bigint;
-        isDeleted: boolean;
-        deletedAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
         userId: bigint;
     }>;
     findAll(query: FindAllEmployeesDto, req: any): Promise<any[] | {
@@ -32,31 +32,31 @@ export declare class EmployeeController {
     }>;
     findOne(id: number): Promise<any>;
     update(id: number, updateEmployeeDto: UpdateEmployeeDto, req: any): Promise<{
+        id: bigint;
+        isDeleted: boolean;
+        deletedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         firstName: string;
         lastName: string;
         position: string;
         department: string;
         joinDate: Date;
         baseSalary: import("@prisma/client-runtime-utils").Decimal;
-        id: bigint;
-        isDeleted: boolean;
-        deletedAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
         userId: bigint;
     }>;
     remove(id: number, req: any): Promise<{
+        id: bigint;
+        isDeleted: boolean;
+        deletedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         firstName: string;
         lastName: string;
         position: string;
         department: string;
         joinDate: Date;
         baseSalary: import("@prisma/client-runtime-utils").Decimal;
-        id: bigint;
-        isDeleted: boolean;
-        deletedAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
         userId: bigint;
     }>;
     restore(id: number): Promise<any>;

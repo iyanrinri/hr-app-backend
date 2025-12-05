@@ -8,7 +8,7 @@ import {
   UseGuards, 
   ParseIntPipe 
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
 import { RolesService } from '../services/roles.service';
 import { UpdateUserRoleDto } from '../dto/update-user-role.dto';
 import { RoleResponseDto, RoleListDto } from '../dto/role-response.dto';
@@ -21,7 +21,7 @@ import { Role } from '@prisma/client';
 @Controller('roles')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.SUPER)
-@ApiBearerAuth()
+@ApiSecurity('JWT-auth')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 

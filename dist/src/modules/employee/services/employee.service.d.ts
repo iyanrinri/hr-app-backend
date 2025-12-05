@@ -7,17 +7,17 @@ export declare class EmployeeService {
     private repository;
     constructor(repository: EmployeeRepository);
     create(createEmployeeDto: CreateEmployeeDto): Promise<{
+        id: bigint;
+        isDeleted: boolean;
+        deletedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         firstName: string;
         lastName: string;
         position: string;
         department: string;
         joinDate: Date;
         baseSalary: Prisma.Decimal;
-        id: bigint;
-        isDeleted: boolean;
-        deletedAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
         userId: bigint;
     }>;
     findAll(query: FindAllEmployeesDto, userRole: Role): Promise<any[] | {
@@ -34,31 +34,31 @@ export declare class EmployeeService {
     private transformEmployees;
     findOne(id: bigint): Promise<any>;
     update(id: bigint, updateEmployeeDto: UpdateEmployeeDto, userRole: Role, userId: string): Promise<{
+        id: bigint;
+        isDeleted: boolean;
+        deletedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         firstName: string;
         lastName: string;
         position: string;
         department: string;
         joinDate: Date;
         baseSalary: Prisma.Decimal;
-        id: bigint;
-        isDeleted: boolean;
-        deletedAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
         userId: bigint;
     }>;
     remove(id: bigint, userRole: Role, userId: string): Promise<{
+        id: bigint;
+        isDeleted: boolean;
+        deletedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
         firstName: string;
         lastName: string;
         position: string;
         department: string;
         joinDate: Date;
         baseSalary: Prisma.Decimal;
-        id: bigint;
-        isDeleted: boolean;
-        deletedAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
         userId: bigint;
     }>;
     restore(id: bigint): Promise<any>;

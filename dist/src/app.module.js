@@ -13,6 +13,8 @@ const database_module_1 = require("./database/database.module");
 const employee_module_1 = require("./modules/employee/employee.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const roles_module_1 = require("./modules/roles/roles.module");
+const attendance_period_module_1 = require("./modules/attendance-period/attendance-period.module");
+const attendance_module_1 = require("./modules/attendance/attendance.module");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 let AppModule = class AppModule {
@@ -26,6 +28,8 @@ exports.AppModule = AppModule = __decorate([
             employee_module_1.EmployeeModule,
             auth_module_1.AuthModule,
             roles_module_1.RolesModule,
+            attendance_period_module_1.AttendancePeriodModule,
+            attendance_module_1.AttendanceModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

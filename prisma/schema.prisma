@@ -21,6 +21,11 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum AttendanceType {
+  CLOCK_IN
+  CLOCK_OUT
+}
+
 enum LeaveStatus {
   PENDING
   APPROVED
@@ -42,39 +47,97 @@ model User {
 }
 
 model Employee {
-  id             BigInt        @id @default(autoincrement())
-  userId         BigInt        @unique
-  user           User          @relation(fields: [userId], references: [id])
-  firstName      String
-  lastName       String
-  position       String
-  department     String
-  joinDate       DateTime
-  baseSalary     Decimal
-  attendances    Attendance[]
-  leaveRequests  LeaveRequest[]
-  payrolls       Payroll[]
-  isDeleted      Boolean       @default(false)
-  deletedAt      DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id               BigInt           @id @default(autoincrement())
+  userId           BigInt           @unique
+  user             User             @relation(fields: [userId], references: [id])
+  firstName        String
+  lastName         String
+  position         String
+  department       String
+  joinDate         DateTime
+  baseSalary       Decimal
+  attendances      Attendance[]
+  attendanceLogs   AttendanceLog[]
+  leaveRequests    LeaveRequest[]
+  payrolls         Payroll[]
+  isDeleted        Boolean          @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   @@map("employees")
 }
 
 model Attendance {
-  id          BigInt           @id @default(autoincrement())
-  employeeId  BigInt
-  employee    Employee         @relation(fields: [employeeId], references: [id])
-  date        DateTime         @db.Date
-  checkIn     DateTime?
-  checkOut    DateTime?
-  status      AttendanceStatus @default(ABSENT)
-  notes       String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id               BigInt           @id @default(autoincrement())
+  employeeId       BigInt
+  employee         Employee         @relation(fields: [employeeId], references: [id])
+  attendancePeriodId BigInt
+  attendancePeriod AttendancePeriod @relation(fields: [attendancePeriodId], references: [id])
+  date             DateTime         @db.Date
+  checkIn          DateTime?
+  checkOut         DateTime?
+  checkInLocation  String?          // JSON string for coordinates {lat, lng, address}
+  checkOutLocation String?          // JSON string for coordinates {lat, lng, address}
+  workDuration     Int?             // Duration in minutes
+  status           AttendanceStatus @default(ABSENT)
+  notes            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
+  @@unique([employeeId, date])
   @@map("attendances")
+}
+
+model AttendanceLog {
+  id               BigInt          @id @default(autoincrement())
+  employeeId       BigInt
+  employee         Employee        @relation(fields: [employeeId], references: [id])
+  attendancePeriodId BigInt
+  attendancePeriod AttendancePeriod @relation(fields: [attendancePeriodId], references: [id])
+  type             AttendanceType
+  timestamp        DateTime        @default(now())
+  location         String          // JSON string for coordinates {lat, lng, address}
+  ipAddress        String?
+  userAgent        String?
+  notes            String?
+  createdAt        DateTime        @default(now())
+
+  @@map("attendance_logs")
+}
+
+model AttendancePeriod {
+  id               BigInt          @id @default(autoincrement())
+  name             String          // e.g., "January 2024", "Q1 2024"
+  startDate        DateTime        @db.Date
+  endDate          DateTime        @db.Date
+  workingDaysPerWeek Int           @default(5) // Monday to Friday
+  workingHoursPerDay Int           @default(8)
+  isActive         Boolean         @default(true)
+  description      String?
+  attendances      Attendance[]
+  attendanceLogs   AttendanceLog[]
+  holidays         Holiday[]
+  createdBy        BigInt          // User ID who created this period
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@map("attendance_periods")
+}
+
+model Holiday {
+  id               BigInt           @id @default(autoincrement())
+  attendancePeriodId BigInt?
+  attendancePeriod AttendancePeriod? @relation(fields: [attendancePeriodId], references: [id])
+  name             String
+  date             DateTime         @db.Date
+  isNational       Boolean          @default(false) // National holiday vs company holiday
+  isRecurring      Boolean          @default(false) // e.g., Christmas every year
+  description      String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@map("holidays")
 }
 
 model LeaveRequest {
