@@ -45,6 +45,24 @@ export class AttendancePeriodResponseDto {
   @ApiProperty({ example: 8 })
   workingHoursPerDay: number;
 
+  @ApiProperty({ example: '09:00' })
+  workingStartTime: string;
+
+  @ApiProperty({ example: '17:00' })
+  workingEndTime: string;
+
+  @ApiProperty({ example: false })
+  allowSaturdayWork: boolean;
+
+  @ApiProperty({ example: false })
+  allowSundayWork: boolean;
+
+  @ApiProperty({ example: 15 })
+  lateToleranceMinutes: number;
+
+  @ApiProperty({ example: 15 })
+  earlyLeaveToleranceMinutes: number;
+
   @ApiProperty({ example: true })
   isActive: boolean;
 

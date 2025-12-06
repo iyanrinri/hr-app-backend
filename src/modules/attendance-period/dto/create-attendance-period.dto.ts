@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsDateString, IsOptional, IsNumber, IsBoolean, Min, Max } from 'class-validator';
+import { IsString, IsNotEmpty, IsDateString, IsOptional, IsNumber, IsBoolean, Min, Max, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateAttendancePeriodDto {
@@ -47,6 +47,70 @@ export class CreateAttendancePeriodDto {
   @Min(1)
   @Max(24)
   workingHoursPerDay?: number;
+
+  @ApiProperty({ 
+    example: '09:00',
+    description: 'Working start time in HH:MM format (default: 09:00)',
+    required: false
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+    message: 'workingStartTime must be in HH:MM format'
+  })
+  workingStartTime?: string;
+
+  @ApiProperty({ 
+    example: '17:00',
+    description: 'Working end time in HH:MM format (default: 17:00)',
+    required: false
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+    message: 'workingEndTime must be in HH:MM format'
+  })
+  workingEndTime?: string;
+
+  @ApiProperty({ 
+    example: false,
+    description: 'Allow employees to clock-in/out on Saturday (default: false)',
+    required: false
+  })
+  @IsOptional()
+  @IsBoolean()
+  allowSaturdayWork?: boolean;
+
+  @ApiProperty({ 
+    example: false,
+    description: 'Allow employees to clock-in/out on Sunday (default: false)',
+    required: false
+  })
+  @IsOptional()
+  @IsBoolean()
+  allowSundayWork?: boolean;
+
+  @ApiProperty({ 
+    example: 15,
+    description: 'Late tolerance in minutes (default: 15)',
+    required: false
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(120)
+  lateToleranceMinutes?: number;
+
+  @ApiProperty({ 
+    example: 15,
+    description: 'Early leave tolerance in minutes (default: 15)',
+    required: false
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(120)
+  earlyLeaveToleranceMinutes?: number;
 
   @ApiProperty({ 
     example: 'Monthly attendance period for January 2024',

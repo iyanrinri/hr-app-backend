@@ -36,16 +36,23 @@ let AttendancePeriodService = class AttendancePeriodService {
         if (overlapping.length > 0) {
             throw new common_1.ConflictException('Attendance period overlaps with existing period');
         }
-        return await this.repository.create({
+        const createdPeriod = await this.repository.create({
             name: createDto.name,
             startDate,
             endDate,
             workingDaysPerWeek: createDto.workingDaysPerWeek || 5,
             workingHoursPerDay: createDto.workingHoursPerDay || 8,
+            workingStartTime: createDto.workingStartTime || "09:00",
+            workingEndTime: createDto.workingEndTime || "17:00",
+            allowSaturdayWork: createDto.allowSaturdayWork ?? false,
+            allowSundayWork: createDto.allowSundayWork ?? false,
+            lateToleranceMinutes: createDto.lateToleranceMinutes ?? 15,
+            earlyLeaveToleranceMinutes: createDto.earlyLeaveToleranceMinutes ?? 15,
             description: createDto.description,
             isActive: createDto.isActive ?? true,
             createdBy: BigInt(userId),
         });
+        return this.transformPeriod(createdPeriod);
     }
     async findAll(query) {
         let whereCondition = {};
@@ -112,6 +119,18 @@ let AttendancePeriodService = class AttendancePeriodService {
             updateData.workingDaysPerWeek = updateDto.workingDaysPerWeek;
         if (updateDto.workingHoursPerDay !== undefined)
             updateData.workingHoursPerDay = updateDto.workingHoursPerDay;
+        if (updateDto.workingStartTime !== undefined)
+            updateData.workingStartTime = updateDto.workingStartTime;
+        if (updateDto.workingEndTime !== undefined)
+            updateData.workingEndTime = updateDto.workingEndTime;
+        if (updateDto.allowSaturdayWork !== undefined)
+            updateData.allowSaturdayWork = updateDto.allowSaturdayWork;
+        if (updateDto.allowSundayWork !== undefined)
+            updateData.allowSundayWork = updateDto.allowSundayWork;
+        if (updateDto.lateToleranceMinutes !== undefined)
+            updateData.lateToleranceMinutes = updateDto.lateToleranceMinutes;
+        if (updateDto.earlyLeaveToleranceMinutes !== undefined)
+            updateData.earlyLeaveToleranceMinutes = updateDto.earlyLeaveToleranceMinutes;
         if (updateDto.startDate || updateDto.endDate) {
             const startDate = updateDto.startDate ? new Date(updateDto.startDate) : existingPeriod.startDate;
             const endDate = updateDto.endDate ? new Date(updateDto.endDate) : existingPeriod.endDate;
@@ -193,10 +212,10 @@ let AttendancePeriodService = class AttendancePeriodService {
                 : undefined,
             orderBy: { date: 'asc' },
         });
-        return holidays.map(holiday => ({
+        return holidays.map((holiday) => ({
             ...holiday,
             id: holiday.id.toString(),
-            attendancePeriodId: holiday.attendancePeriodId?.toString(),
+            attendancePeriodId: holiday.attendancePeriodId?.toString() || null,
             date: holiday.date.toISOString(),
             createdAt: holiday.createdAt.toISOString(),
             updatedAt: holiday.updatedAt.toISOString(),
@@ -236,8 +255,21 @@ let AttendancePeriodService = class AttendancePeriodService {
         return { message: 'Holiday deleted successfully' };
     }
     async isWorkingDay(date, attendancePeriodId) {
+        let periodConfig;
+        if (attendancePeriodId) {
+            periodConfig = await this.repository.findOne({ id: attendancePeriodId });
+        }
+        else {
+            periodConfig = await this.getActivePeriod();
+        }
+        if (!periodConfig) {
+            throw new Error('No attendance period found');
+        }
         const dayOfWeek = date.getDay();
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
+        if (dayOfWeek === 0 && !periodConfig.allowSundayWork) {
+            return false;
+        }
+        if (dayOfWeek === 6 && !periodConfig.allowSaturdayWork) {
             return false;
         }
         const holidays = await this.repository.findHolidaysByDateRange(date, date, attendancePeriodId);
@@ -248,19 +280,29 @@ let AttendancePeriodService = class AttendancePeriodService {
     }
     transformPeriod(period) {
         return {
-            ...period,
             id: period.id.toString(),
+            name: period.name,
+            startDate: period.startDate instanceof Date ? period.startDate.toISOString() : period.startDate,
+            endDate: period.endDate instanceof Date ? period.endDate.toISOString() : period.endDate,
+            workingDaysPerWeek: period.workingDaysPerWeek,
+            workingHoursPerDay: period.workingHoursPerDay,
+            workingStartTime: period.workingStartTime || "09:00",
+            workingEndTime: period.workingEndTime || "17:00",
+            allowSaturdayWork: period.allowSaturdayWork || false,
+            allowSundayWork: period.allowSundayWork || false,
+            lateToleranceMinutes: period.lateToleranceMinutes || 15,
+            earlyLeaveToleranceMinutes: period.earlyLeaveToleranceMinutes || 15,
+            isActive: period.isActive,
+            description: period.description,
             createdBy: period.createdBy.toString(),
-            startDate: period.startDate.toISOString(),
-            endDate: period.endDate.toISOString(),
-            createdAt: period.createdAt.toISOString(),
-            updatedAt: period.updatedAt.toISOString(),
+            createdAt: period.createdAt instanceof Date ? period.createdAt.toISOString() : period.createdAt,
+            updatedAt: period.updatedAt instanceof Date ? period.updatedAt.toISOString() : period.updatedAt,
             holidays: period.holidays?.map((holiday) => ({
                 ...holiday,
                 id: holiday.id.toString(),
-                date: holiday.date.toISOString(),
-                createdAt: holiday.createdAt.toISOString(),
-                updatedAt: holiday.updatedAt.toISOString(),
+                date: holiday.date instanceof Date ? holiday.date.toISOString() : holiday.date,
+                createdAt: holiday.createdAt instanceof Date ? holiday.createdAt.toISOString() : holiday.createdAt,
+                updatedAt: holiday.updatedAt instanceof Date ? holiday.updatedAt.toISOString() : holiday.updatedAt,
             })),
         };
     }

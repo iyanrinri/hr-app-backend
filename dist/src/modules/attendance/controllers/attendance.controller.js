@@ -48,11 +48,16 @@ let AttendanceController = class AttendanceController {
     }
     async getAttendanceStats(startDate, endDate, req, employeeId) {
         let targetEmployeeId;
-        if (employeeId && (req.user.role === client_1.Role.SUPER || req.user.role === client_1.Role.HR)) {
+        const currentUserId = BigInt(req.user.sub);
+        const userRole = req.user.role;
+        if (employeeId) {
+            if (userRole !== client_1.Role.SUPER && userRole !== client_1.Role.HR) {
+                throw new common_1.ForbiddenException('Access denied. Only SUPER and HR users can query other employee statistics.');
+            }
             targetEmployeeId = BigInt(employeeId);
         }
         else {
-            targetEmployeeId = BigInt(req.user.sub);
+            targetEmployeeId = currentUserId;
         }
         return this.attendanceService.getAttendanceStats(targetEmployeeId, startDate, endDate);
     }
@@ -117,8 +122,30 @@ __decorate([
 ], AttendanceController.prototype, "getAttendanceLogs", null);
 __decorate([
     (0, common_1.Get)('stats'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get attendance statistics' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get attendance statistics',
+        description: 'Get attendance statistics for the authenticated user. Only SUPER/HR users can query other employees by providing employeeId parameter.'
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'startDate',
+        required: true,
+        description: 'Start date for statistics (YYYY-MM-DD)',
+        example: '2025-12-01'
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'endDate',
+        required: true,
+        description: 'End date for statistics (YYYY-MM-DD)',
+        example: '2025-12-31'
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'employeeId',
+        required: false,
+        description: 'Employee ID to query (only available for SUPER/HR users). If not provided, returns current user stats.',
+        example: '1'
+    }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Attendance statistics data.' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden - insufficient permissions to query other employee data.' }),
     __param(0, (0, common_1.Query)('startDate')),
     __param(1, (0, common_1.Query)('endDate')),
     __param(2, (0, common_1.Request)()),

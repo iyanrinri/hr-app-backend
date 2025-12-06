@@ -1,38 +1,73 @@
 import { AttendancePeriodService } from '../services/attendance-period.service';
+import { AttendancePeriodScheduler } from '../services/attendance-period.scheduler';
 import { CreateAttendancePeriodDto } from '../dto/create-attendance-period.dto';
 import { UpdateAttendancePeriodDto } from '../dto/update-attendance-period.dto';
 import { CreateHolidayDto } from '../dto/create-holiday.dto';
 import { FindAllPeriodsDto } from '../dto/find-all-periods.dto';
 export declare class AttendancePeriodController {
     private readonly attendancePeriodService;
-    constructor(attendancePeriodService: AttendancePeriodService);
+    private readonly attendancePeriodScheduler;
+    constructor(attendancePeriodService: AttendancePeriodService, attendancePeriodScheduler: AttendancePeriodScheduler);
     create(createDto: CreateAttendancePeriodDto, req: any): Promise<{
-        holidays: {
-            id: bigint;
-            createdAt: Date;
-            updatedAt: Date;
-            name: string;
-            description: string | null;
-            date: Date;
-            attendancePeriodId: bigint | null;
-            isNational: boolean;
-            isRecurring: boolean;
-        }[];
-    } & {
-        id: bigint;
-        createdAt: Date;
-        updatedAt: Date;
-        name: string;
-        description: string | null;
-        startDate: Date;
-        endDate: Date;
-        workingDaysPerWeek: number;
-        workingHoursPerDay: number;
-        isActive: boolean;
-        createdBy: bigint;
+        id: any;
+        name: any;
+        startDate: any;
+        endDate: any;
+        workingDaysPerWeek: any;
+        workingHoursPerDay: any;
+        workingStartTime: any;
+        workingEndTime: any;
+        allowSaturdayWork: any;
+        allowSundayWork: any;
+        lateToleranceMinutes: any;
+        earlyLeaveToleranceMinutes: any;
+        isActive: any;
+        description: any;
+        createdBy: any;
+        createdAt: any;
+        updatedAt: any;
+        holidays: any;
     }>;
-    findAll(query: FindAllPeriodsDto): Promise<any[] | {
-        data: any[];
+    findAll(query: FindAllPeriodsDto): Promise<{
+        id: any;
+        name: any;
+        startDate: any;
+        endDate: any;
+        workingDaysPerWeek: any;
+        workingHoursPerDay: any;
+        workingStartTime: any;
+        workingEndTime: any;
+        allowSaturdayWork: any;
+        allowSundayWork: any;
+        lateToleranceMinutes: any;
+        earlyLeaveToleranceMinutes: any;
+        isActive: any;
+        description: any;
+        createdBy: any;
+        createdAt: any;
+        updatedAt: any;
+        holidays: any;
+    }[] | {
+        data: {
+            id: any;
+            name: any;
+            startDate: any;
+            endDate: any;
+            workingDaysPerWeek: any;
+            workingHoursPerDay: any;
+            workingStartTime: any;
+            workingEndTime: any;
+            allowSaturdayWork: any;
+            allowSundayWork: any;
+            lateToleranceMinutes: any;
+            earlyLeaveToleranceMinutes: any;
+            isActive: any;
+            description: any;
+            createdBy: any;
+            createdAt: any;
+            updatedAt: any;
+            holidays: any;
+        }[];
         meta: {
             page: number;
             limit: number;
@@ -42,50 +77,110 @@ export declare class AttendancePeriodController {
             hasPrev: boolean;
         };
     }>;
-    getActivePeriod(): Promise<any>;
-    findOne(id: number): Promise<any>;
-    update(id: number, updateDto: UpdateAttendancePeriodDto): Promise<any>;
+    getActivePeriod(): Promise<{
+        id: any;
+        name: any;
+        startDate: any;
+        endDate: any;
+        workingDaysPerWeek: any;
+        workingHoursPerDay: any;
+        workingStartTime: any;
+        workingEndTime: any;
+        allowSaturdayWork: any;
+        allowSundayWork: any;
+        lateToleranceMinutes: any;
+        earlyLeaveToleranceMinutes: any;
+        isActive: any;
+        description: any;
+        createdBy: any;
+        createdAt: any;
+        updatedAt: any;
+        holidays: any;
+    }>;
+    findOne(id: number): Promise<{
+        id: any;
+        name: any;
+        startDate: any;
+        endDate: any;
+        workingDaysPerWeek: any;
+        workingHoursPerDay: any;
+        workingStartTime: any;
+        workingEndTime: any;
+        allowSaturdayWork: any;
+        allowSundayWork: any;
+        lateToleranceMinutes: any;
+        earlyLeaveToleranceMinutes: any;
+        isActive: any;
+        description: any;
+        createdBy: any;
+        createdAt: any;
+        updatedAt: any;
+        holidays: any;
+    }>;
+    update(id: number, updateDto: UpdateAttendancePeriodDto): Promise<{
+        id: any;
+        name: any;
+        startDate: any;
+        endDate: any;
+        workingDaysPerWeek: any;
+        workingHoursPerDay: any;
+        workingStartTime: any;
+        workingEndTime: any;
+        allowSaturdayWork: any;
+        allowSundayWork: any;
+        lateToleranceMinutes: any;
+        earlyLeaveToleranceMinutes: any;
+        isActive: any;
+        description: any;
+        createdBy: any;
+        createdAt: any;
+        updatedAt: any;
+        holidays: any;
+    }>;
     remove(id: number): Promise<{
         message: string;
     }>;
     createHoliday(createDto: CreateHolidayDto): Promise<{
         id: bigint;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
         description: string | null;
-        date: Date;
+        createdAt: Date;
+        updatedAt: Date;
         attendancePeriodId: bigint | null;
+        date: Date;
         isNational: boolean;
         isRecurring: boolean;
     }>;
-    findHolidays(attendancePeriodId?: string): Promise<{
-        id: string;
-        attendancePeriodId: string | undefined;
-        date: string;
-        createdAt: string;
-        updatedAt: string;
-        attendancePeriod: {
-            id: bigint;
-            name: string;
-        } | null;
-        name: string;
-        description: string | null;
-        isNational: boolean;
-        isRecurring: boolean;
-    }[]>;
+    findHolidays(attendancePeriodId?: string): Promise<any[]>;
     updateHoliday(id: number, updateData: Partial<CreateHolidayDto>): Promise<{
         id: bigint;
-        createdAt: Date;
-        updatedAt: Date;
         name: string;
         description: string | null;
-        date: Date;
+        createdAt: Date;
+        updatedAt: Date;
         attendancePeriodId: bigint | null;
+        date: Date;
         isNational: boolean;
         isRecurring: boolean;
     }>;
     deleteHoliday(id: number): Promise<{
         message: string;
+    }>;
+    runPeriodsCheck(): Promise<{
+        status: string;
+        message: string;
+        timestamp: Date;
+    }>;
+    getSchedulerStats(): Promise<{
+        status: string;
+        data: {
+            totalActive: number;
+            totalInactive: number;
+            currentlyValidActive: number;
+            expiredButStillActive: number;
+            upcomingButIncorrectlyActive: number;
+            shouldBeActiveButInactive: number;
+            lastChecked: Date;
+        };
     }>;
 }

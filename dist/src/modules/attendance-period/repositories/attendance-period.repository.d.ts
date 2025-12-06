@@ -10,8 +10,8 @@ export declare class AttendancePeriodRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            date: Date;
             attendancePeriodId: bigint | null;
+            date: Date;
             isNational: boolean;
             isRecurring: boolean;
         }[];
@@ -25,6 +25,12 @@ export declare class AttendancePeriodRepository {
         endDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
+        workingStartTime: string;
+        workingEndTime: string;
+        allowSaturdayWork: boolean;
+        allowSundayWork: boolean;
+        lateToleranceMinutes: number;
+        earlyLeaveToleranceMinutes: number;
         isActive: boolean;
         createdBy: bigint;
     }>;
@@ -35,8 +41,8 @@ export declare class AttendancePeriodRepository {
         orderBy?: Prisma.AttendancePeriodOrderByWithRelationInput;
     }): Promise<({
         _count: {
-            attendances: number;
             attendanceLogs: number;
+            attendances: number;
         };
         holidays: {
             id: bigint;
@@ -44,8 +50,8 @@ export declare class AttendancePeriodRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            date: Date;
             attendancePeriodId: bigint | null;
+            date: Date;
             isNational: boolean;
             isRecurring: boolean;
         }[];
@@ -59,13 +65,19 @@ export declare class AttendancePeriodRepository {
         endDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
+        workingStartTime: string;
+        workingEndTime: string;
+        allowSaturdayWork: boolean;
+        allowSundayWork: boolean;
+        lateToleranceMinutes: number;
+        earlyLeaveToleranceMinutes: number;
         isActive: boolean;
         createdBy: bigint;
     })[]>;
     findOne(where: Prisma.AttendancePeriodWhereUniqueInput): Promise<({
         _count: {
-            attendances: number;
             attendanceLogs: number;
+            attendances: number;
         };
         holidays: {
             id: bigint;
@@ -73,8 +85,8 @@ export declare class AttendancePeriodRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            date: Date;
             attendancePeriodId: bigint | null;
+            date: Date;
             isNational: boolean;
             isRecurring: boolean;
         }[];
@@ -88,6 +100,12 @@ export declare class AttendancePeriodRepository {
         endDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
+        workingStartTime: string;
+        workingEndTime: string;
+        allowSaturdayWork: boolean;
+        allowSundayWork: boolean;
+        lateToleranceMinutes: number;
+        earlyLeaveToleranceMinutes: number;
         isActive: boolean;
         createdBy: bigint;
     }) | null>;
@@ -101,8 +119,8 @@ export declare class AttendancePeriodRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            date: Date;
             attendancePeriodId: bigint | null;
+            date: Date;
             isNational: boolean;
             isRecurring: boolean;
         }[];
@@ -116,6 +134,12 @@ export declare class AttendancePeriodRepository {
         endDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
+        workingStartTime: string;
+        workingEndTime: string;
+        allowSaturdayWork: boolean;
+        allowSundayWork: boolean;
+        lateToleranceMinutes: number;
+        earlyLeaveToleranceMinutes: number;
         isActive: boolean;
         createdBy: bigint;
     }>;
@@ -129,6 +153,12 @@ export declare class AttendancePeriodRepository {
         endDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
+        workingStartTime: string;
+        workingEndTime: string;
+        allowSaturdayWork: boolean;
+        allowSundayWork: boolean;
+        lateToleranceMinutes: number;
+        earlyLeaveToleranceMinutes: number;
         isActive: boolean;
         createdBy: bigint;
     }>;
@@ -140,8 +170,8 @@ export declare class AttendancePeriodRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            date: Date;
             attendancePeriodId: bigint | null;
+            date: Date;
             isNational: boolean;
             isRecurring: boolean;
         }[];
@@ -155,6 +185,12 @@ export declare class AttendancePeriodRepository {
         endDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
+        workingStartTime: string;
+        workingEndTime: string;
+        allowSaturdayWork: boolean;
+        allowSundayWork: boolean;
+        lateToleranceMinutes: number;
+        earlyLeaveToleranceMinutes: number;
         isActive: boolean;
         createdBy: bigint;
     }) | null>;
@@ -164,8 +200,8 @@ export declare class AttendancePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        date: Date;
         attendancePeriodId: bigint | null;
+        date: Date;
         isNational: boolean;
         isRecurring: boolean;
     }>;
@@ -183,8 +219,8 @@ export declare class AttendancePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        date: Date;
         attendancePeriodId: bigint | null;
+        date: Date;
         isNational: boolean;
         isRecurring: boolean;
     })[]>;
@@ -197,8 +233,8 @@ export declare class AttendancePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        date: Date;
         attendancePeriodId: bigint | null;
+        date: Date;
         isNational: boolean;
         isRecurring: boolean;
     }>;
@@ -208,8 +244,8 @@ export declare class AttendancePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        date: Date;
         attendancePeriodId: bigint | null;
+        date: Date;
         isNational: boolean;
         isRecurring: boolean;
     }>;
@@ -219,8 +255,8 @@ export declare class AttendancePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        date: Date;
         attendancePeriodId: bigint | null;
+        date: Date;
         isNational: boolean;
         isRecurring: boolean;
     }[]>;

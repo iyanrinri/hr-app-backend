@@ -4,6 +4,12 @@ export declare class UpdateAttendancePeriodDto {
     endDate?: string;
     workingDaysPerWeek?: number;
     workingHoursPerDay?: number;
+    workingStartTime?: string;
+    workingEndTime?: string;
+    allowSaturdayWork?: boolean;
+    allowSundayWork?: boolean;
+    lateToleranceMinutes?: number;
+    earlyLeaveToleranceMinutes?: number;
     description?: string;
     isActive?: boolean;
 }

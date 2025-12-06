@@ -61,6 +61,12 @@ class AttendancePeriodResponseDto {
     endDate;
     workingDaysPerWeek;
     workingHoursPerDay;
+    workingStartTime;
+    workingEndTime;
+    allowSaturdayWork;
+    allowSundayWork;
+    lateToleranceMinutes;
+    earlyLeaveToleranceMinutes;
     isActive;
     description;
     createdBy;
@@ -93,6 +99,30 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: 8 }),
     __metadata("design:type", Number)
 ], AttendancePeriodResponseDto.prototype, "workingHoursPerDay", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '09:00' }),
+    __metadata("design:type", String)
+], AttendancePeriodResponseDto.prototype, "workingStartTime", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '17:00' }),
+    __metadata("design:type", String)
+], AttendancePeriodResponseDto.prototype, "workingEndTime", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: false }),
+    __metadata("design:type", Boolean)
+], AttendancePeriodResponseDto.prototype, "allowSaturdayWork", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: false }),
+    __metadata("design:type", Boolean)
+], AttendancePeriodResponseDto.prototype, "allowSundayWork", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 15 }),
+    __metadata("design:type", Number)
+], AttendancePeriodResponseDto.prototype, "lateToleranceMinutes", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 15 }),
+    __metadata("design:type", Number)
+], AttendancePeriodResponseDto.prototype, "earlyLeaveToleranceMinutes", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: true }),
     __metadata("design:type", Boolean)

@@ -1,5 +1,5 @@
-import { Controller, Post, Get, Body, Query, Request, UseGuards, HttpCode, HttpStatus, Ip, Headers } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
+import { Controller, Post, Get, Body, Query, Request, UseGuards, HttpCode, HttpStatus, Ip, Headers, ForbiddenException } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiSecurity, ApiQuery } from '@nestjs/swagger';
 import { AttendanceService } from '../services/attendance.service';
 import { ClockInDto } from '../dto/clock-in.dto';
 import { ClockOutDto } from '../dto/clock-out.dto';
@@ -75,8 +75,30 @@ export class AttendanceController {
   }
 
   @Get('stats')
-  @ApiOperation({ summary: 'Get attendance statistics' })
+  @ApiOperation({ 
+    summary: 'Get attendance statistics',
+    description: 'Get attendance statistics for the authenticated user. Only SUPER/HR users can query other employees by providing employeeId parameter.'
+  })
+  @ApiQuery({
+    name: 'startDate',
+    required: true,
+    description: 'Start date for statistics (YYYY-MM-DD)',
+    example: '2025-12-01'
+  })
+  @ApiQuery({
+    name: 'endDate', 
+    required: true,
+    description: 'End date for statistics (YYYY-MM-DD)',
+    example: '2025-12-31'
+  })
+  @ApiQuery({
+    name: 'employeeId',
+    required: false,
+    description: 'Employee ID to query (only available for SUPER/HR users). If not provided, returns current user stats.',
+    example: '1'
+  })
   @ApiResponse({ status: 200, description: 'Attendance statistics data.' })
+  @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions to query other employee data.' })
   async getAttendanceStats(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
@@ -84,11 +106,21 @@ export class AttendanceController {
     @Query('employeeId') employeeId?: string,
   ) {
     let targetEmployeeId: bigint;
+    const currentUserId = BigInt(req.user.sub);
+    const userRole = req.user.role;
 
-    if (employeeId && (req.user.role === Role.SUPER || req.user.role === Role.HR)) {
+    // If employeeId is provided, validate permissions
+    if (employeeId) {
+      // Only SUPER and HR users can query other employees
+      if (userRole !== Role.SUPER && userRole !== Role.HR) {
+        throw new ForbiddenException(
+          'Access denied. Only SUPER and HR users can query other employee statistics.'
+        );
+      }
       targetEmployeeId = BigInt(employeeId);
     } else {
-      targetEmployeeId = BigInt(req.user.sub);
+      // If no employeeId provided, use current user's ID
+      targetEmployeeId = currentUserId;
     }
 
     return this.attendanceService.getAttendanceStats(targetEmployeeId, startDate, endDate);

@@ -18,6 +18,12 @@ class UpdateAttendancePeriodDto {
     endDate;
     workingDaysPerWeek;
     workingHoursPerDay;
+    workingStartTime;
+    workingEndTime;
+    allowSaturdayWork;
+    allowSundayWork;
+    lateToleranceMinutes;
+    earlyLeaveToleranceMinutes;
     description;
     isActive;
 }
@@ -76,6 +82,76 @@ __decorate([
     (0, class_validator_1.Max)(24),
     __metadata("design:type", Number)
 ], UpdateAttendancePeriodDto.prototype, "workingHoursPerDay", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: '09:00',
+        description: 'Working start time in HH:MM format',
+        required: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Matches)(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+        message: 'workingStartTime must be in HH:MM format'
+    }),
+    __metadata("design:type", String)
+], UpdateAttendancePeriodDto.prototype, "workingStartTime", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: '17:00',
+        description: 'Working end time in HH:MM format',
+        required: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Matches)(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+        message: 'workingEndTime must be in HH:MM format'
+    }),
+    __metadata("design:type", String)
+], UpdateAttendancePeriodDto.prototype, "workingEndTime", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: false,
+        description: 'Allow employees to clock-in/out on Saturday',
+        required: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateAttendancePeriodDto.prototype, "allowSaturdayWork", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: false,
+        description: 'Allow employees to clock-in/out on Sunday',
+        required: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateAttendancePeriodDto.prototype, "allowSundayWork", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: 15,
+        description: 'Late tolerance in minutes',
+        required: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(120),
+    __metadata("design:type", Number)
+], UpdateAttendancePeriodDto.prototype, "lateToleranceMinutes", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: 15,
+        description: 'Early leave tolerance in minutes',
+        required: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(120),
+    __metadata("design:type", Number)
+], UpdateAttendancePeriodDto.prototype, "earlyLeaveToleranceMinutes", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         example: 'Updated monthly attendance period for January 2024',

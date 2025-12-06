@@ -15,6 +15,12 @@ export declare class AttendancePeriodResponseDto {
     endDate: string;
     workingDaysPerWeek: number;
     workingHoursPerDay: number;
+    workingStartTime: string;
+    workingEndTime: string;
+    allowSaturdayWork: boolean;
+    allowSundayWork: boolean;
+    lateToleranceMinutes: number;
+    earlyLeaveToleranceMinutes: number;
     isActive: boolean;
     description?: string;
     createdBy: string;

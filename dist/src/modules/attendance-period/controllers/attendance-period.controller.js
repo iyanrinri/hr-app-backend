@@ -16,19 +16,23 @@ exports.AttendancePeriodController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const attendance_period_service_1 = require("../services/attendance-period.service");
+const attendance_period_scheduler_1 = require("../services/attendance-period.scheduler");
 const create_attendance_period_dto_1 = require("../dto/create-attendance-period.dto");
 const update_attendance_period_dto_1 = require("../dto/update-attendance-period.dto");
 const create_holiday_dto_1 = require("../dto/create-holiday.dto");
 const find_all_periods_dto_1 = require("../dto/find-all-periods.dto");
 const period_response_dto_1 = require("../dto/period-response.dto");
+const scheduler_response_dto_1 = require("../dto/scheduler-response.dto");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../../auth/guards/roles.guard");
 const roles_decorator_1 = require("../../../common/decorators/roles.decorator");
 const client_1 = require("@prisma/client");
 let AttendancePeriodController = class AttendancePeriodController {
     attendancePeriodService;
-    constructor(attendancePeriodService) {
+    attendancePeriodScheduler;
+    constructor(attendancePeriodService, attendancePeriodScheduler) {
         this.attendancePeriodService = attendancePeriodService;
+        this.attendancePeriodScheduler = attendancePeriodScheduler;
     }
     create(createDto, req) {
         return this.attendancePeriodService.create(createDto, req.user.sub);
@@ -59,6 +63,21 @@ let AttendancePeriodController = class AttendancePeriodController {
     }
     deleteHoliday(id) {
         return this.attendancePeriodService.deleteHoliday(BigInt(id));
+    }
+    async runPeriodsCheck() {
+        await this.attendancePeriodScheduler.runPeriodsCheck();
+        return {
+            status: 'success',
+            message: 'Period status check completed',
+            timestamp: new Date(),
+        };
+    }
+    async getSchedulerStats() {
+        const stats = await this.attendancePeriodScheduler.getPeriodStatusStats();
+        return {
+            status: 'success',
+            data: stats,
+        };
     }
 };
 exports.AttendancePeriodController = AttendancePeriodController;
@@ -159,12 +178,37 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], AttendancePeriodController.prototype, "deleteHoliday", null);
+__decorate([
+    (0, common_1.Post)('scheduler/run-check'),
+    (0, swagger_1.ApiOperation)({ summary: 'Manually run period status check (SUPER/HR only)' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Period check completed successfully.',
+        type: scheduler_response_dto_1.SchedulerRunResponseDto
+    }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AttendancePeriodController.prototype, "runPeriodsCheck", null);
+__decorate([
+    (0, common_1.Get)('scheduler/stats'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get period scheduler statistics (SUPER/HR only)' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Period scheduler statistics.',
+        type: scheduler_response_dto_1.SchedulerStatsWrapperDto
+    }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AttendancePeriodController.prototype, "getSchedulerStats", null);
 exports.AttendancePeriodController = AttendancePeriodController = __decorate([
     (0, swagger_1.ApiTags)('attendance-periods'),
     (0, common_1.Controller)('attendance-periods'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR),
     (0, swagger_1.ApiSecurity)('JWT-auth'),
-    __metadata("design:paramtypes", [attendance_period_service_1.AttendancePeriodService])
+    __metadata("design:paramtypes", [attendance_period_service_1.AttendancePeriodService,
+        attendance_period_scheduler_1.AttendancePeriodScheduler])
 ], AttendancePeriodController);
 //# sourceMappingURL=attendance-period.controller.js.map

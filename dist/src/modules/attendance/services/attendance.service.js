@@ -56,7 +56,7 @@ let AttendanceService = class AttendanceService {
                 data: {
                     checkIn: now,
                     checkInLocation: JSON.stringify(locationData),
-                    status: this.determineAttendanceStatus(now),
+                    status: await this.determineAttendanceStatus(now, activePeriod),
                     notes: clockInDto.notes,
                 },
             });
@@ -68,7 +68,7 @@ let AttendanceService = class AttendanceService {
                 date: today,
                 checkIn: now,
                 checkInLocation: JSON.stringify(locationData),
-                status: this.determineAttendanceStatus(now),
+                status: await this.determineAttendanceStatus(now, activePeriod),
                 notes: clockInDto.notes,
             });
         }
@@ -101,6 +101,7 @@ let AttendanceService = class AttendanceService {
             address: clockOutDto.address,
         };
         const workDuration = this.calculateWorkDuration(existingAttendance.checkIn, now);
+        const isEarlyLeave = await this.checkEarlyLeave(now, activePeriod);
         const log = await this.attendanceRepository.createAttendanceLog({
             employee: { connect: { id: employeeId } },
             attendancePeriod: { connect: { id: BigInt(activePeriod.id) } },
@@ -231,15 +232,26 @@ let AttendanceService = class AttendanceService {
                 : 0,
         };
     }
-    determineAttendanceStatus(checkInTime) {
+    async determineAttendanceStatus(checkInTime, period) {
         const hour = checkInTime.getHours();
         const minute = checkInTime.getMinutes();
+        const [startHour, startMinute] = period.workingStartTime.split(':').map(Number);
         const checkInMinutes = hour * 60 + minute;
-        const lateThreshold = 9 * 60;
+        const workingStartMinutes = startHour * 60 + startMinute;
+        const lateThreshold = workingStartMinutes + (period.lateToleranceMinutes || 15);
         if (checkInMinutes > lateThreshold) {
             return client_1.AttendanceStatus.LATE;
         }
         return client_1.AttendanceStatus.PRESENT;
+    }
+    async checkEarlyLeave(checkOutTime, period) {
+        const hour = checkOutTime.getHours();
+        const minute = checkOutTime.getMinutes();
+        const [endHour, endMinute] = period.workingEndTime.split(':').map(Number);
+        const checkOutMinutes = hour * 60 + minute;
+        const workingEndMinutes = endHour * 60 + endMinute;
+        const earlyLeaveThreshold = workingEndMinutes - (period.earlyLeaveToleranceMinutes || 15);
+        return checkOutMinutes < earlyLeaveThreshold;
     }
     calculateWorkDuration(checkIn, checkOut) {
         const diffMs = checkOut.getTime() - checkIn.getTime();

@@ -40,6 +40,7 @@ export declare class AttendanceService {
         averageWorkDuration: number;
     }>;
     private determineAttendanceStatus;
+    private checkEarlyLeave;
     private calculateWorkDuration;
     private transformAttendance;
     private transformAttendanceLog;

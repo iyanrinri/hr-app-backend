@@ -1,11 +1,13 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiParam, ApiSecurity } from '@nestjs/swagger';
 import { AttendancePeriodService } from '../services/attendance-period.service';
+import { AttendancePeriodScheduler } from '../services/attendance-period.scheduler';
 import { CreateAttendancePeriodDto } from '../dto/create-attendance-period.dto';
 import { UpdateAttendancePeriodDto } from '../dto/update-attendance-period.dto';
 import { CreateHolidayDto } from '../dto/create-holiday.dto';
 import { FindAllPeriodsDto } from '../dto/find-all-periods.dto';
 import { AttendancePeriodResponseDto, HolidayResponseDto } from '../dto/period-response.dto';
+import { SchedulerRunResponseDto, SchedulerStatsWrapperDto } from '../dto/scheduler-response.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -17,7 +19,10 @@ import { Role } from '@prisma/client';
 @Roles(Role.SUPER, Role.HR)
 @ApiSecurity('JWT-auth')
 export class AttendancePeriodController {
-  constructor(private readonly attendancePeriodService: AttendancePeriodService) {}
+  constructor(
+    private readonly attendancePeriodService: AttendancePeriodService,
+    private readonly attendancePeriodScheduler: AttendancePeriodScheduler,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create attendance period (SUPER/HR only)' })
@@ -95,5 +100,37 @@ export class AttendancePeriodController {
   @ApiResponse({ status: 200, description: 'Holiday deleted successfully.' })
   deleteHoliday(@Param('id', ParseIntPipe) id: number) {
     return this.attendancePeriodService.deleteHoliday(BigInt(id));
+  }
+
+  // Scheduler endpoints
+  @Post('scheduler/run-check')
+  @ApiOperation({ summary: 'Manually run period status check (SUPER/HR only)' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Period check completed successfully.',
+    type: SchedulerRunResponseDto 
+  })
+  async runPeriodsCheck() {
+    await this.attendancePeriodScheduler.runPeriodsCheck();
+    return {
+      status: 'success',
+      message: 'Period status check completed',
+      timestamp: new Date(),
+    };
+  }
+
+  @Get('scheduler/stats')
+  @ApiOperation({ summary: 'Get period scheduler statistics (SUPER/HR only)' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Period scheduler statistics.',
+    type: SchedulerStatsWrapperDto 
+  })
+  async getSchedulerStats() {
+    const stats = await this.attendancePeriodScheduler.getPeriodStatusStats();
+    return {
+      status: 'success',
+      data: stats,
+    };
   }
 }

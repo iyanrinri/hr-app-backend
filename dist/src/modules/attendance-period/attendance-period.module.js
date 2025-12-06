@@ -10,6 +10,7 @@ exports.AttendancePeriodModule = void 0;
 const common_1 = require("@nestjs/common");
 const attendance_period_controller_1 = require("./controllers/attendance-period.controller");
 const attendance_period_service_1 = require("./services/attendance-period.service");
+const attendance_period_scheduler_1 = require("./services/attendance-period.scheduler");
 const attendance_period_repository_1 = require("./repositories/attendance-period.repository");
 const database_module_1 = require("../../database/database.module");
 let AttendancePeriodModule = class AttendancePeriodModule {
@@ -19,7 +20,7 @@ exports.AttendancePeriodModule = AttendancePeriodModule = __decorate([
     (0, common_1.Module)({
         imports: [database_module_1.DatabaseModule],
         controllers: [attendance_period_controller_1.AttendancePeriodController],
-        providers: [attendance_period_service_1.AttendancePeriodService, attendance_period_repository_1.AttendancePeriodRepository],
+        providers: [attendance_period_service_1.AttendancePeriodService, attendance_period_scheduler_1.AttendancePeriodScheduler, attendance_period_repository_1.AttendancePeriodRepository],
         exports: [attendance_period_service_1.AttendancePeriodService, attendance_period_repository_1.AttendancePeriodRepository],
     })
 ], AttendancePeriodModule);
