@@ -14,12 +14,15 @@ const common_1 = require("@nestjs/common");
 const attendance_repository_1 = require("../repositories/attendance.repository");
 const attendance_period_service_1 = require("../../attendance-period/services/attendance-period.service");
 const client_1 = require("@prisma/client");
+const notification_service_1 = require("../../../common/services/notification.service");
 let AttendanceService = class AttendanceService {
     attendanceRepository;
     attendancePeriodService;
-    constructor(attendanceRepository, attendancePeriodService) {
+    notificationService;
+    constructor(attendanceRepository, attendancePeriodService, notificationService) {
         this.attendanceRepository = attendanceRepository;
         this.attendancePeriodService = attendancePeriodService;
+        this.notificationService = notificationService;
     }
     async clockIn(employeeId, clockInDto, ipAddress, userAgent) {
         const today = new Date();
@@ -72,6 +75,7 @@ let AttendanceService = class AttendanceService {
                 notes: clockInDto.notes,
             });
         }
+        await this.sendClockInNotification(employeeId, now, attendance.status === client_1.AttendanceStatus.LATE, locationData);
         return {
             status: 'success',
             message: 'Successfully clocked in',
@@ -90,9 +94,6 @@ let AttendanceService = class AttendanceService {
         const existingAttendance = await this.attendanceRepository.findTodayAttendance(employeeId, today);
         if (!existingAttendance || !existingAttendance.checkIn) {
             throw new common_1.BadRequestException('Must clock in before clocking out');
-        }
-        if (existingAttendance.checkOut) {
-            throw new common_1.BadRequestException('Already clocked out today');
         }
         const now = new Date();
         const locationData = {
@@ -121,9 +122,12 @@ let AttendanceService = class AttendanceService {
                 notes: clockOutDto.notes ? `${existingAttendance.notes || ''}; ${clockOutDto.notes}` : existingAttendance.notes,
             },
         });
+        await this.sendClockOutNotification(employeeId, now, isEarlyLeave, workDuration, locationData, !!existingAttendance.checkOut);
         return {
             status: 'success',
-            message: 'Successfully clocked out',
+            message: existingAttendance.checkOut
+                ? 'Successfully updated clock-out time'
+                : 'Successfully clocked out',
             log: this.transformAttendanceLog(log),
             attendance: this.transformAttendance(attendance),
         };
@@ -272,6 +276,66 @@ let AttendanceService = class AttendanceService {
             updatedAt: attendance.updatedAt instanceof Date ? attendance.updatedAt.toISOString() : attendance.updatedAt,
         };
     }
+    async sendClockInNotification(employeeId, timestamp, isLate, location) {
+        try {
+            const employeeInfo = await this.getEmployeeInfo(employeeId);
+            const event = {
+                type: 'CLOCK_IN',
+                employeeId: employeeId.toString(),
+                employeeName: employeeInfo.fullName,
+                department: employeeInfo.department,
+                timestamp: timestamp.toISOString(),
+                location: {
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    address: location.address,
+                },
+                isLate,
+            };
+            await this.notificationService.sendAttendanceNotification(event);
+        }
+        catch (error) {
+            console.error('Failed to send clock-in notification:', error);
+        }
+    }
+    async sendClockOutNotification(employeeId, timestamp, isEarlyLeave, workDuration, location, wasAlreadyClockedOut) {
+        try {
+            const employeeInfo = await this.getEmployeeInfo(employeeId);
+            const event = {
+                type: 'CLOCK_OUT',
+                employeeId: employeeId.toString(),
+                employeeName: employeeInfo.fullName,
+                department: employeeInfo.department,
+                timestamp: timestamp.toISOString(),
+                location: {
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    address: location.address,
+                },
+                isEarlyLeave,
+                workDuration,
+            };
+            if (!wasAlreadyClockedOut || isEarlyLeave) {
+                await this.notificationService.sendAttendanceNotification(event);
+            }
+        }
+        catch (error) {
+            console.error('Failed to send clock-out notification:', error);
+        }
+    }
+    async getEmployeeInfo(employeeId) {
+        const employee = await this.attendanceRepository.findEmployeeById(Number(employeeId));
+        if (!employee) {
+            throw new common_1.NotFoundException('Employee not found');
+        }
+        return {
+            fullName: `${employee.firstName} ${employee.lastName}`,
+            employeeNumber: `EMP${employee.id.toString().padStart(3, '0')}`,
+            department: employee.department,
+            position: employee.position,
+            email: employee.user.email,
+        };
+    }
     transformAttendanceLog(log) {
         return {
             ...log,
@@ -288,6 +352,7 @@ exports.AttendanceService = AttendanceService;
 exports.AttendanceService = AttendanceService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [attendance_repository_1.AttendanceRepository,
-        attendance_period_service_1.AttendancePeriodService])
+        attendance_period_service_1.AttendancePeriodService,
+        notification_service_1.NotificationService])
 ], AttendanceService);
 //# sourceMappingURL=attendance.service.js.map

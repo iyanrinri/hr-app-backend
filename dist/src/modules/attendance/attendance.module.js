@@ -13,12 +13,13 @@ const attendance_service_1 = require("./services/attendance.service");
 const attendance_repository_1 = require("./repositories/attendance.repository");
 const attendance_period_module_1 = require("../attendance-period/attendance-period.module");
 const database_module_1 = require("../../database/database.module");
+const notification_module_1 = require("../../common/modules/notification.module");
 let AttendanceModule = class AttendanceModule {
 };
 exports.AttendanceModule = AttendanceModule;
 exports.AttendanceModule = AttendanceModule = __decorate([
     (0, common_1.Module)({
-        imports: [database_module_1.DatabaseModule, attendance_period_module_1.AttendancePeriodModule],
+        imports: [database_module_1.DatabaseModule, attendance_period_module_1.AttendancePeriodModule, notification_module_1.NotificationModule],
         controllers: [attendance_controller_1.AttendanceController],
         providers: [attendance_service_1.AttendanceService, attendance_repository_1.AttendanceRepository],
         exports: [attendance_service_1.AttendanceService, attendance_repository_1.AttendanceRepository],

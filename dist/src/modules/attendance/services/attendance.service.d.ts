@@ -4,10 +4,12 @@ import { ClockInDto } from '../dto/clock-in.dto';
 import { ClockOutDto } from '../dto/clock-out.dto';
 import { AttendanceHistoryDto } from '../dto/attendance-history.dto';
 import { Role } from '@prisma/client';
+import { NotificationService } from '../../../common/services/notification.service';
 export declare class AttendanceService {
     private attendanceRepository;
     private attendancePeriodService;
-    constructor(attendanceRepository: AttendanceRepository, attendancePeriodService: AttendancePeriodService);
+    private notificationService;
+    constructor(attendanceRepository: AttendanceRepository, attendancePeriodService: AttendancePeriodService, notificationService: NotificationService);
     clockIn(employeeId: bigint, clockInDto: ClockInDto, ipAddress?: string, userAgent?: string): Promise<{
         status: string;
         message: string;
@@ -43,5 +45,8 @@ export declare class AttendanceService {
     private checkEarlyLeave;
     private calculateWorkDuration;
     private transformAttendance;
+    private sendClockInNotification;
+    private sendClockOutNotification;
+    private getEmployeeInfo;
     private transformAttendanceLog;
 }

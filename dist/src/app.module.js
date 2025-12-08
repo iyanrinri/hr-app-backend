@@ -16,6 +16,7 @@ const auth_module_1 = require("./modules/auth/auth.module");
 const roles_module_1 = require("./modules/roles/roles.module");
 const attendance_period_module_1 = require("./modules/attendance-period/attendance-period.module");
 const attendance_module_1 = require("./modules/attendance/attendance.module");
+const notification_module_1 = require("./common/modules/notification.module");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 let AppModule = class AppModule {
@@ -27,6 +28,7 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             schedule_1.ScheduleModule.forRoot(),
             database_module_1.DatabaseModule,
+            notification_module_1.NotificationModule,
             employee_module_1.EmployeeModule,
             auth_module_1.AuthModule,
             roles_module_1.RolesModule,

@@ -227,4 +227,22 @@ export class AttendanceRepository {
       totalWorkDuration: totalWorkDuration._sum.workDuration || 0,
     };
   }
+
+  async findEmployeeById(employeeId: number) {
+    return this.prisma.employee.findUnique({
+      where: { id: employeeId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        position: true,
+        department: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
 }

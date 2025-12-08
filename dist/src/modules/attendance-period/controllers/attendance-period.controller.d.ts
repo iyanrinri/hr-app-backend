@@ -142,10 +142,10 @@ export declare class AttendancePeriodController {
     }>;
     createHoliday(createDto: CreateHolidayDto): Promise<{
         id: bigint;
-        name: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        description: string | null;
         attendancePeriodId: bigint | null;
         date: Date;
         isNational: boolean;
@@ -154,10 +154,10 @@ export declare class AttendancePeriodController {
     findHolidays(attendancePeriodId?: string): Promise<any[]>;
     updateHoliday(id: number, updateData: Partial<CreateHolidayDto>): Promise<{
         id: bigint;
-        name: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
+        name: string;
+        description: string | null;
         attendancePeriodId: bigint | null;
         date: Date;
         isNational: boolean;

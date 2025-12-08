@@ -337,4 +337,14 @@ export declare class AttendanceRepository {
         statusCounts: Record<string, number>;
         totalWorkDuration: number;
     }>;
+    findEmployeeById(employeeId: number): Promise<{
+        id: bigint;
+        user: {
+            email: string;
+        };
+        firstName: string;
+        lastName: string;
+        position: string;
+        department: string;
+    } | null>;
 }

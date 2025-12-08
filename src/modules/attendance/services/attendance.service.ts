@@ -5,12 +5,15 @@ import { ClockInDto } from '../dto/clock-in.dto';
 import { ClockOutDto } from '../dto/clock-out.dto';
 import { AttendanceHistoryDto } from '../dto/attendance-history.dto';
 import { AttendanceStatus, AttendanceType, Role } from '@prisma/client';
+import { NotificationService } from '../../../common/services/notification.service';
+import { AttendanceEvent } from '../../../common/services/kafka.service';
 
 @Injectable()
 export class AttendanceService {
   constructor(
     private attendanceRepository: AttendanceRepository,
     private attendancePeriodService: AttendancePeriodService,
+    private notificationService: NotificationService,
   ) {}
 
   async clockIn(employeeId: bigint, clockInDto: ClockInDto, ipAddress?: string, userAgent?: string) {
@@ -76,6 +79,9 @@ export class AttendanceService {
       });
     }
 
+    // Send notification after successful clock-in
+    await this.sendClockInNotification(employeeId, now, attendance.status === AttendanceStatus.LATE, locationData);
+
     return {
       status: 'success',
       message: 'Successfully clocked in',
@@ -103,9 +109,8 @@ export class AttendanceService {
       throw new BadRequestException('Must clock in before clocking out');
     }
 
-    if (existingAttendance.checkOut) {
-      throw new BadRequestException('Already clocked out today');
-    }
+    // Allow multiple clock-outs as long as user has clocked in
+    // Remove the check that prevents multiple clock-outs
 
     const now = new Date();
     const locationData = {
@@ -132,20 +137,32 @@ export class AttendanceService {
       notes: clockOutDto.notes,
     });
 
-    // Update attendance record
+    // Update attendance record with latest clock-out info
     const attendance = await this.attendanceRepository.updateAttendance({
       where: { id: existingAttendance.id },
       data: {
-        checkOut: now,
+        checkOut: now, // Always update to latest clock-out time
         checkOutLocation: JSON.stringify(locationData),
-        workDuration,
+        workDuration, // Recalculate based on latest clock-out
         notes: clockOutDto.notes ? `${existingAttendance.notes || ''}; ${clockOutDto.notes}` : existingAttendance.notes,
       },
     });
 
+    // Send notification after successful clock-out
+    await this.sendClockOutNotification(
+      employeeId, 
+      now, 
+      isEarlyLeave, 
+      workDuration, 
+      locationData,
+      !!existingAttendance.checkOut // was already clocked out
+    );
+
     return {
       status: 'success',
-      message: 'Successfully clocked out',
+      message: existingAttendance.checkOut 
+        ? 'Successfully updated clock-out time' 
+        : 'Successfully clocked out',
       log: this.transformAttendanceLog(log),
       attendance: this.transformAttendance(attendance),
     };
@@ -340,6 +357,91 @@ export class AttendanceService {
       checkOutLocation: attendance.checkOutLocation ? JSON.parse(attendance.checkOutLocation) : null,
       createdAt: attendance.createdAt instanceof Date ? attendance.createdAt.toISOString() : attendance.createdAt,
       updatedAt: attendance.updatedAt instanceof Date ? attendance.updatedAt.toISOString() : attendance.updatedAt,
+    };
+  }
+
+  // Helper method to send clock-in notification
+  private async sendClockInNotification(
+    employeeId: bigint,
+    timestamp: Date,
+    isLate: boolean,
+    location: any
+  ) {
+    try {
+      const employeeInfo = await this.getEmployeeInfo(employeeId);
+      
+      const event: AttendanceEvent = {
+        type: 'CLOCK_IN',
+        employeeId: employeeId.toString(),
+        employeeName: employeeInfo.fullName,
+        department: employeeInfo.department,
+        timestamp: timestamp.toISOString(),
+        location: {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          address: location.address,
+        },
+        isLate,
+      };
+
+      await this.notificationService.sendAttendanceNotification(event);
+    } catch (error) {
+      // Don't block attendance process if notification fails
+      console.error('Failed to send clock-in notification:', error);
+    }
+  }
+
+  // Helper method to send clock-out notification
+  private async sendClockOutNotification(
+    employeeId: bigint,
+    timestamp: Date,
+    isEarlyLeave: boolean,
+    workDuration: number,
+    location: any,
+    wasAlreadyClockedOut: boolean
+  ) {
+    try {
+      const employeeInfo = await this.getEmployeeInfo(employeeId);
+      
+      const event: AttendanceEvent = {
+        type: 'CLOCK_OUT',
+        employeeId: employeeId.toString(),
+        employeeName: employeeInfo.fullName,
+        department: employeeInfo.department,
+        timestamp: timestamp.toISOString(),
+        location: {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          address: location.address,
+        },
+        isEarlyLeave,
+        workDuration,
+      };
+
+      // Only send notification if this is first clock-out or if it's an update worth notifying
+      if (!wasAlreadyClockedOut || isEarlyLeave) {
+        await this.notificationService.sendAttendanceNotification(event);
+      }
+    } catch (error) {
+      // Don't block attendance process if notification fails
+      console.error('Failed to send clock-out notification:', error);
+    }
+  }
+
+  // Helper method to get employee information for notifications
+  private async getEmployeeInfo(employeeId: bigint) {
+    const employee = await this.attendanceRepository.findEmployeeById(Number(employeeId));
+    
+    if (!employee) {
+      throw new NotFoundException('Employee not found');
+    }
+
+    return {
+      fullName: `${employee.firstName} ${employee.lastName}`,
+      employeeNumber: `EMP${employee.id.toString().padStart(3, '0')}`,
+      department: employee.department,
+      position: employee.position,
+      email: employee.user.email,
     };
   }
 

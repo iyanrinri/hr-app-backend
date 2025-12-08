@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { AttendancePeriodModule } from './modules/attendance-period/attendance-period.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
+import { NotificationModule } from './common/modules/notification.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -15,6 +16,7 @@ import { AppService } from './app.service';
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
     DatabaseModule,
+    NotificationModule,
     EmployeeModule,
     AuthModule,
     RolesModule,
