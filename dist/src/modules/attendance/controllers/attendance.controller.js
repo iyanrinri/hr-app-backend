@@ -16,6 +16,7 @@ exports.AttendanceController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const attendance_service_1 = require("../services/attendance.service");
+const employee_service_1 = require("../../employee/services/employee.service");
 const clock_in_dto_1 = require("../dto/clock-in.dto");
 const clock_out_dto_1 = require("../dto/clock-out.dto");
 const attendance_history_dto_1 = require("../dto/attendance-history.dto");
@@ -23,20 +24,25 @@ const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const client_1 = require("@prisma/client");
 let AttendanceController = class AttendanceController {
     attendanceService;
-    constructor(attendanceService) {
+    employeeService;
+    constructor(attendanceService, employeeService) {
         this.attendanceService = attendanceService;
+        this.employeeService = employeeService;
     }
     async clockIn(clockInDto, req, ip, userAgent) {
-        const employeeId = BigInt(req.user.sub);
-        return this.attendanceService.clockIn(employeeId, clockInDto, ip, userAgent);
+        const userId = BigInt(req.user.sub);
+        const employee = await this.employeeService.findByUserId(userId);
+        return this.attendanceService.clockIn(employee.id, clockInDto, ip, userAgent);
     }
     async clockOut(clockOutDto, req, ip, userAgent) {
-        const employeeId = BigInt(req.user.sub);
-        return this.attendanceService.clockOut(employeeId, clockOutDto, ip, userAgent);
+        const userId = BigInt(req.user.sub);
+        const employee = await this.employeeService.findByUserId(userId);
+        return this.attendanceService.clockOut(employee.id, clockOutDto, ip, userAgent);
     }
     async getTodayAttendance(req) {
-        const employeeId = BigInt(req.user.sub);
-        return this.attendanceService.getTodayAttendance(employeeId);
+        const userId = BigInt(req.user.sub);
+        const employee = await this.employeeService.findByUserId(userId);
+        return this.attendanceService.getTodayAttendance(employee.id);
     }
     async getAttendanceHistory(query, req) {
         const userRole = req.user.role;
@@ -60,6 +66,14 @@ let AttendanceController = class AttendanceController {
             targetEmployeeId = currentUserId;
         }
         return this.attendanceService.getAttendanceStats(targetEmployeeId, startDate, endDate);
+    }
+    async getDashboardToday(req) {
+        const userRole = req.user.role;
+        const userId = BigInt(req.user.sub);
+        if (userRole !== client_1.Role.SUPER && userRole !== client_1.Role.HR) {
+            throw new common_1.ForbiddenException('Access denied. Only SUPER and HR users can access attendance dashboard.');
+        }
+        return this.attendanceService.getDashboardToday();
     }
 };
 exports.AttendanceController = AttendanceController;
@@ -154,11 +168,97 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Object, String]),
     __metadata("design:returntype", Promise)
 ], AttendanceController.prototype, "getAttendanceStats", null);
+__decorate([
+    (0, common_1.Get)('dashboard/today'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get today\'s attendance dashboard data',
+        description: 'Get comprehensive dashboard data including attendance stats, present/absent/late employees list for today. Only accessible by SUPER and HR users.'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Today\'s attendance dashboard data.',
+        schema: {
+            type: 'object',
+            properties: {
+                date: { type: 'string', example: '2025-12-08' },
+                summary: {
+                    type: 'object',
+                    properties: {
+                        totalEmployees: { type: 'number', example: 150 },
+                        totalPresent: { type: 'number', example: 120 },
+                        totalAbsent: { type: 'number', example: 30 },
+                        totalLate: { type: 'number', example: 15 },
+                        attendanceRate: { type: 'number', example: 80.0 },
+                        lateRate: { type: 'number', example: 12.5 },
+                        onTimeRate: { type: 'number', example: 67.5 }
+                    }
+                },
+                presentEmployees: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'string' },
+                            firstName: { type: 'string' },
+                            lastName: { type: 'string' },
+                            email: { type: 'string' },
+                            department: { type: 'string' },
+                            position: { type: 'string' },
+                            checkIn: { type: 'string' },
+                            checkOut: { type: 'string', nullable: true },
+                            status: { type: 'string' },
+                            isLate: { type: 'boolean' },
+                            minutesLate: { type: 'number' },
+                            workDuration: { type: 'number' }
+                        }
+                    }
+                },
+                absentEmployees: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'string' },
+                            firstName: { type: 'string' },
+                            lastName: { type: 'string' },
+                            email: { type: 'string' },
+                            department: { type: 'string' },
+                            position: { type: 'string' }
+                        }
+                    }
+                },
+                lateEmployees: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'string' },
+                            firstName: { type: 'string' },
+                            lastName: { type: 'string' },
+                            email: { type: 'string' },
+                            department: { type: 'string' },
+                            position: { type: 'string' },
+                            checkIn: { type: 'string' },
+                            minutesLate: { type: 'number' }
+                        }
+                    }
+                }
+            }
+        }
+    }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden - insufficient permissions.' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'No active attendance period found.' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AttendanceController.prototype, "getDashboardToday", null);
 exports.AttendanceController = AttendanceController = __decorate([
     (0, swagger_1.ApiTags)('attendance'),
     (0, swagger_1.ApiSecurity)('JWT-auth'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('attendance'),
-    __metadata("design:paramtypes", [attendance_service_1.AttendanceService])
+    __metadata("design:paramtypes", [attendance_service_1.AttendanceService,
+        employee_service_1.EmployeeService])
 ], AttendanceController);
 //# sourceMappingURL=attendance.controller.js.map

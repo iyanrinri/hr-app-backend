@@ -62,7 +62,8 @@ export class NotificationService implements OnModuleInit {
   async sendAttendanceNotification(event: AttendanceEvent) {
     try {
       await this.kafkaService.sendAttendanceEvent(event);
-      this.logger.log(`✅ Attendance notification queued for ${event.employeeName}`);
+      console.log("BACKEND: Sending attendance notification via Kafka");
+      this.logger.log(`BACKEND: Attendance notification queued for ${event.employeeName}`);
     } catch (error) {
       this.logger.error('❌ Failed to queue attendance notification:', error);
       // Fallback: send directly via WebSocket if Kafka fails

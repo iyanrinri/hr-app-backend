@@ -151,6 +151,23 @@ let NotificationGateway = NotificationGateway_1 = class NotificationGateway {
         }
         return message;
     }
+    async sendDashboardUpdate(dashboardData) {
+        try {
+            this.logger.log(`📊 Broadcasting dashboard update to admin clients`);
+            const updateEvent = {
+                type: 'dashboard-update',
+                data: dashboardData,
+                timestamp: new Date().toISOString(),
+            };
+            this.server.to('admin-room').emit('dashboard-update', updateEvent);
+            this.logger.log(`📊 Dashboard update sent to admin clients`);
+            return updateEvent;
+        }
+        catch (error) {
+            this.logger.error(`❌ Error sending dashboard update:`, error);
+            throw error;
+        }
+    }
     async getNotificationStats() {
         const rooms = await this.server.fetchSockets();
         const adminSockets = await this.server.in('admin-room').fetchSockets();

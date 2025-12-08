@@ -202,6 +202,28 @@ export class NotificationGateway
     return message;
   }
 
+  // Send dashboard update to admin clients
+  async sendDashboardUpdate(dashboardData: any) {
+    try {
+      this.logger.log(`📊 Broadcasting dashboard update to admin clients`);
+      
+      const updateEvent = {
+        type: 'dashboard-update',
+        data: dashboardData,
+        timestamp: new Date().toISOString(),
+      };
+
+      // Send to admin room only
+      this.server.to('admin-room').emit('dashboard-update', updateEvent);
+      this.logger.log(`📊 Dashboard update sent to admin clients`);
+      
+      return updateEvent;
+    } catch (error) {
+      this.logger.error(`❌ Error sending dashboard update:`, error);
+      throw error;
+    }
+  }
+
   // Get statistics for admin dashboard
   async getNotificationStats() {
     const rooms = await this.server.fetchSockets();

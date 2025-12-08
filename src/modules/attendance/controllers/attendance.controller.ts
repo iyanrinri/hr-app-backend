@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Body, Query, Request, UseGuards, HttpCode, HttpStatus, Ip, Headers, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiSecurity, ApiQuery } from '@nestjs/swagger';
 import { AttendanceService } from '../services/attendance.service';
+import { EmployeeService } from '../../employee/services/employee.service';
 import { ClockInDto } from '../dto/clock-in.dto';
 import { ClockOutDto } from '../dto/clock-out.dto';
 import { AttendanceHistoryDto } from '../dto/attendance-history.dto';
@@ -12,7 +13,10 @@ import { Role } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 @Controller('attendance')
 export class AttendanceController {
-  constructor(private readonly attendanceService: AttendanceService) {}
+  constructor(
+    private readonly attendanceService: AttendanceService,
+    private readonly employeeService: EmployeeService,
+  ) {}
 
   @Post('clock-in')
   @HttpCode(HttpStatus.OK)
@@ -25,8 +29,9 @@ export class AttendanceController {
     @Ip() ip: string,
     @Headers('user-agent') userAgent: string,
   ) {
-    const employeeId = BigInt(req.user.sub);
-    return this.attendanceService.clockIn(employeeId, clockInDto, ip, userAgent);
+    const userId = BigInt(req.user.sub);
+    const employee = await this.employeeService.findByUserId(userId);
+    return this.attendanceService.clockIn(employee.id, clockInDto, ip, userAgent);
   }
 
   @Post('clock-out')
@@ -40,16 +45,18 @@ export class AttendanceController {
     @Ip() ip: string,
     @Headers('user-agent') userAgent: string,
   ) {
-    const employeeId = BigInt(req.user.sub);
-    return this.attendanceService.clockOut(employeeId, clockOutDto, ip, userAgent);
+    const userId = BigInt(req.user.sub);
+    const employee = await this.employeeService.findByUserId(userId);
+    return this.attendanceService.clockOut(employee.id, clockOutDto, ip, userAgent);
   }
 
   @Get('today')
   @ApiOperation({ summary: 'Get today\'s attendance status' })
   @ApiResponse({ status: 200, description: 'Today\'s attendance data.' })
   async getTodayAttendance(@Request() req: any) {
-    const employeeId = BigInt(req.user.sub);
-    return this.attendanceService.getTodayAttendance(employeeId);
+    const userId = BigInt(req.user.sub);
+    const employee = await this.employeeService.findByUserId(userId);
+    return this.attendanceService.getTodayAttendance(employee.id);
   }
 
   @Get('history')
@@ -124,5 +131,98 @@ export class AttendanceController {
     }
 
     return this.attendanceService.getAttendanceStats(targetEmployeeId, startDate, endDate);
+  }
+
+  @Get('dashboard/today')
+  @ApiOperation({ 
+    summary: 'Get today\'s attendance dashboard data',
+    description: 'Get comprehensive dashboard data including attendance stats, present/absent/late employees list for today. Only accessible by SUPER and HR users.'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Today\'s attendance dashboard data.',
+    schema: {
+      type: 'object',
+      properties: {
+        date: { type: 'string', example: '2025-12-08' },
+        summary: {
+          type: 'object',
+          properties: {
+            totalEmployees: { type: 'number', example: 150 },
+            totalPresent: { type: 'number', example: 120 },
+            totalAbsent: { type: 'number', example: 30 },
+            totalLate: { type: 'number', example: 15 },
+            attendanceRate: { type: 'number', example: 80.0 },
+            lateRate: { type: 'number', example: 12.5 },
+            onTimeRate: { type: 'number', example: 67.5 }
+          }
+        },
+        presentEmployees: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              firstName: { type: 'string' },
+              lastName: { type: 'string' },
+              email: { type: 'string' },
+              department: { type: 'string' },
+              position: { type: 'string' },
+              checkIn: { type: 'string' },
+              checkOut: { type: 'string', nullable: true },
+              status: { type: 'string' },
+              isLate: { type: 'boolean' },
+              minutesLate: { type: 'number' },
+              workDuration: { type: 'number' }
+            }
+          }
+        },
+        absentEmployees: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              firstName: { type: 'string' },
+              lastName: { type: 'string' },
+              email: { type: 'string' },
+              department: { type: 'string' },
+              position: { type: 'string' }
+            }
+          }
+        },
+        lateEmployees: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              firstName: { type: 'string' },
+              lastName: { type: 'string' },
+              email: { type: 'string' },
+              department: { type: 'string' },
+              position: { type: 'string' },
+              checkIn: { type: 'string' },
+              minutesLate: { type: 'number' }
+            }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions.' })
+  @ApiResponse({ status: 404, description: 'No active attendance period found.' })
+  async getDashboardToday(@Request() req: any) {
+    const userRole = req.user.role;
+    const userId = BigInt(req.user.sub);
+
+    // Only SUPER and HR users can access dashboard
+    if (userRole !== Role.SUPER && userRole !== Role.HR) {
+      throw new ForbiddenException(
+        'Access denied. Only SUPER and HR users can access attendance dashboard.'
+      );
+    }
+
+    return this.attendanceService.getDashboardToday();
   }
 }

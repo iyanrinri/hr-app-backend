@@ -293,4 +293,12 @@ export class EmployeeService {
       throw error;
     }
   }
+
+  async findByUserId(userId: bigint) {
+    const employee = await this.repository.findByUserId(userId);
+    if (!employee) {
+      throw new NotFoundException('Employee not found for this user');
+    }
+    return employee;
+  }
 }

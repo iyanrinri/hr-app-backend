@@ -285,6 +285,13 @@ let EmployeeService = class EmployeeService {
             throw error;
         }
     }
+    async findByUserId(userId) {
+        const employee = await this.repository.findByUserId(userId);
+        if (!employee) {
+            throw new common_1.NotFoundException('Employee not found for this user');
+        }
+        return employee;
+    }
 };
 exports.EmployeeService = EmployeeService;
 exports.EmployeeService = EmployeeService = __decorate([

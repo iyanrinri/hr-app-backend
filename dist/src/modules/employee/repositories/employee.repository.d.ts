@@ -19,4 +19,5 @@ export declare class EmployeeRepository {
     }): Promise<Employee>;
     softDelete(where: Prisma.EmployeeWhereUniqueInput): Promise<Employee>;
     restore(where: Prisma.EmployeeWhereUniqueInput): Promise<Employee>;
+    findByUserId(userId: bigint): Promise<Employee | null>;
 }

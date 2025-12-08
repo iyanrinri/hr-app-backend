@@ -15,14 +15,17 @@ const attendance_repository_1 = require("../repositories/attendance.repository")
 const attendance_period_service_1 = require("../../attendance-period/services/attendance-period.service");
 const client_1 = require("@prisma/client");
 const notification_service_1 = require("../../../common/services/notification.service");
+const notification_gateway_1 = require("../../../common/gateways/notification.gateway");
 let AttendanceService = class AttendanceService {
     attendanceRepository;
     attendancePeriodService;
     notificationService;
-    constructor(attendanceRepository, attendancePeriodService, notificationService) {
+    notificationGateway;
+    constructor(attendanceRepository, attendancePeriodService, notificationService, notificationGateway) {
         this.attendanceRepository = attendanceRepository;
         this.attendancePeriodService = attendancePeriodService;
         this.notificationService = notificationService;
+        this.notificationGateway = notificationGateway;
     }
     async clockIn(employeeId, clockInDto, ipAddress, userAgent) {
         const today = new Date();
@@ -76,6 +79,7 @@ let AttendanceService = class AttendanceService {
             });
         }
         await this.sendClockInNotification(employeeId, now, attendance.status === client_1.AttendanceStatus.LATE, locationData);
+        await this.sendDashboardUpdate();
         return {
             status: 'success',
             message: 'Successfully clocked in',
@@ -123,6 +127,7 @@ let AttendanceService = class AttendanceService {
             },
         });
         await this.sendClockOutNotification(employeeId, now, isEarlyLeave, workDuration, locationData, !!existingAttendance.checkOut);
+        await this.sendDashboardUpdate();
         return {
             status: 'success',
             message: existingAttendance.checkOut
@@ -347,12 +352,110 @@ let AttendanceService = class AttendanceService {
             createdAt: log.createdAt instanceof Date ? log.createdAt.toISOString() : log.createdAt,
         };
     }
+    async getDashboardToday() {
+        const activePeriod = await this.attendancePeriodService.getActivePeriod();
+        if (!activePeriod) {
+            throw new common_1.NotFoundException('No active attendance period found');
+        }
+        const today = new Date();
+        const dashboardData = await this.attendanceRepository.getDashboardData(today, Number(activePeriod.id));
+        const workingStartTime = this.parseTime(activePeriod.workingStartTime);
+        const toleranceMinutes = activePeriod.lateToleranceMinutes || 0;
+        const lateThreshold = new Date(today);
+        lateThreshold.setHours(workingStartTime.hours, workingStartTime.minutes + toleranceMinutes, 0, 0);
+        const presentEmployees = [];
+        const lateEmployees = [];
+        const employeeAttendanceMap = new Map();
+        for (const attendance of dashboardData.todayAttendances) {
+            employeeAttendanceMap.set(Number(attendance.employeeId), attendance);
+            const employee = attendance.employee;
+            if (attendance.checkIn) {
+                const checkInTime = new Date(attendance.checkIn);
+                const isLate = checkInTime > lateThreshold;
+                const minutesLate = isLate ? Math.floor((checkInTime.getTime() - lateThreshold.getTime()) / 60000) : 0;
+                const employeeData = {
+                    id: employee.id.toString(),
+                    firstName: employee.firstName,
+                    lastName: employee.lastName,
+                    email: employee.user.email,
+                    department: employee.department,
+                    position: employee.position,
+                    checkIn: attendance.checkIn instanceof Date ? attendance.checkIn.toISOString() : attendance.checkIn,
+                    checkOut: attendance.checkOut ? (attendance.checkOut instanceof Date ? attendance.checkOut.toISOString() : attendance.checkOut) : null,
+                    status: attendance.status || 'PRESENT',
+                    isLate,
+                    minutesLate,
+                    workDuration: attendance.workDuration || 0,
+                };
+                presentEmployees.push(employeeData);
+                if (isLate) {
+                    lateEmployees.push({
+                        ...employeeData,
+                        minutesLate,
+                    });
+                }
+            }
+        }
+        const absentEmployees = dashboardData.allEmployees
+            .filter(emp => !employeeAttendanceMap.has(Number(emp.id)))
+            .map(emp => ({
+            id: emp.id.toString(),
+            firstName: emp.firstName,
+            lastName: emp.lastName,
+            email: emp.user.email,
+            department: emp.department,
+            position: emp.position,
+        }));
+        const totalEmployees = dashboardData.allEmployees.length;
+        const totalPresent = presentEmployees.length;
+        const totalAbsent = absentEmployees.length;
+        const totalLate = lateEmployees.length;
+        const attendanceRate = totalEmployees > 0 ? (totalPresent / totalEmployees) * 100 : 0;
+        const lateRate = totalEmployees > 0 ? (totalLate / totalEmployees) * 100 : 0;
+        const onTimeRate = totalEmployees > 0 ? ((totalPresent - totalLate) / totalEmployees) * 100 : 0;
+        return {
+            date: today.toISOString().split('T')[0],
+            summary: {
+                totalEmployees,
+                totalPresent,
+                totalAbsent,
+                totalLate,
+                attendanceRate: Math.round(attendanceRate * 10) / 10,
+                lateRate: Math.round(lateRate * 10) / 10,
+                onTimeRate: Math.round(onTimeRate * 10) / 10,
+            },
+            presentEmployees,
+            absentEmployees,
+            lateEmployees,
+            attendancePeriod: {
+                id: activePeriod.id,
+                name: activePeriod.name,
+                workingStartTime: activePeriod.workingStartTime,
+                workingEndTime: activePeriod.workingEndTime,
+                toleranceMinutes: activePeriod.lateToleranceMinutes,
+            },
+        };
+    }
+    parseTime(timeString) {
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return { hours, minutes };
+    }
+    async sendDashboardUpdate() {
+        try {
+            const dashboardData = await this.getDashboardToday();
+            await this.notificationGateway.sendDashboardUpdate(dashboardData);
+        }
+        catch (error) {
+            console.error('Failed to send dashboard update:', error);
+        }
+    }
 };
 exports.AttendanceService = AttendanceService;
 exports.AttendanceService = AttendanceService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [attendance_repository_1.AttendanceRepository,
         attendance_period_service_1.AttendancePeriodService,
-        notification_service_1.NotificationService])
+        notification_service_1.NotificationService,
+        notification_gateway_1.NotificationGateway])
 ], AttendanceService);
 //# sourceMappingURL=attendance.service.js.map

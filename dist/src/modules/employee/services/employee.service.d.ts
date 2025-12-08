@@ -62,4 +62,18 @@ export declare class EmployeeService {
         userId: bigint;
     }>;
     restore(id: bigint): Promise<any>;
+    findByUserId(userId: bigint): Promise<{
+        id: bigint;
+        isDeleted: boolean;
+        deletedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+        firstName: string;
+        lastName: string;
+        position: string;
+        department: string;
+        joinDate: Date;
+        baseSalary: Prisma.Decimal;
+        userId: bigint;
+    }>;
 }

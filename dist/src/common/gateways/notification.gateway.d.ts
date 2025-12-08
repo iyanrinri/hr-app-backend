@@ -21,6 +21,11 @@ export declare class NotificationGateway implements OnGatewayInit, OnGatewayConn
     handleGetRoomInfo(client: AuthenticatedSocket): Promise<void>;
     private getNotificationTitle;
     private getNotificationMessage;
+    sendDashboardUpdate(dashboardData: any): Promise<{
+        type: string;
+        data: any;
+        timestamp: string;
+    }>;
     getNotificationStats(): Promise<{
         totalConnected: number;
         adminConnected: number;

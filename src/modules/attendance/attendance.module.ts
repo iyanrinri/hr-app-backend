@@ -3,11 +3,12 @@ import { AttendanceController } from './controllers/attendance.controller';
 import { AttendanceService } from './services/attendance.service';
 import { AttendanceRepository } from './repositories/attendance.repository';
 import { AttendancePeriodModule } from '../attendance-period/attendance-period.module';
+import { EmployeeModule } from '../employee/employee.module';
 import { DatabaseModule } from '../../database/database.module';
 import { NotificationModule } from '../../common/modules/notification.module';
 
 @Module({
-  imports: [DatabaseModule, AttendancePeriodModule, NotificationModule],
+  imports: [DatabaseModule, AttendancePeriodModule, EmployeeModule, NotificationModule],
   controllers: [AttendanceController],
   providers: [AttendanceService, AttendanceRepository],
   exports: [AttendanceService, AttendanceRepository],

@@ -18,6 +18,7 @@ exports.EmployeeModule = EmployeeModule = __decorate([
     (0, common_1.Module)({
         controllers: [employee_controller_1.EmployeeController],
         providers: [employee_service_1.EmployeeService, employee_repository_1.EmployeeRepository],
+        exports: [employee_service_1.EmployeeService, employee_repository_1.EmployeeRepository],
     })
 ], EmployeeModule);
 //# sourceMappingURL=employee.module.js.map

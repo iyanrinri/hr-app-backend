@@ -52,7 +52,8 @@ let NotificationService = NotificationService_1 = class NotificationService {
     async sendAttendanceNotification(event) {
         try {
             await this.kafkaService.sendAttendanceEvent(event);
-            this.logger.log(`✅ Attendance notification queued for ${event.employeeName}`);
+            console.log("BACKEND: Sending attendance notification via Kafka");
+            this.logger.log(`BACKEND: Attendance notification queued for ${event.employeeName}`);
         }
         catch (error) {
             this.logger.error('❌ Failed to queue attendance notification:', error);

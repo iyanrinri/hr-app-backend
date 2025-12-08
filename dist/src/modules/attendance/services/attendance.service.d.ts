@@ -5,11 +5,13 @@ import { ClockOutDto } from '../dto/clock-out.dto';
 import { AttendanceHistoryDto } from '../dto/attendance-history.dto';
 import { Role } from '@prisma/client';
 import { NotificationService } from '../../../common/services/notification.service';
+import { NotificationGateway } from '../../../common/gateways/notification.gateway';
 export declare class AttendanceService {
     private attendanceRepository;
     private attendancePeriodService;
     private notificationService;
-    constructor(attendanceRepository: AttendanceRepository, attendancePeriodService: AttendancePeriodService, notificationService: NotificationService);
+    private notificationGateway;
+    constructor(attendanceRepository: AttendanceRepository, attendancePeriodService: AttendancePeriodService, notificationService: NotificationService, notificationGateway: NotificationGateway);
     clockIn(employeeId: bigint, clockInDto: ClockInDto, ipAddress?: string, userAgent?: string): Promise<{
         status: string;
         message: string;
@@ -49,4 +51,61 @@ export declare class AttendanceService {
     private sendClockOutNotification;
     private getEmployeeInfo;
     private transformAttendanceLog;
+    getDashboardToday(): Promise<{
+        date: string;
+        summary: {
+            totalEmployees: number;
+            totalPresent: number;
+            totalAbsent: number;
+            totalLate: number;
+            attendanceRate: number;
+            lateRate: number;
+            onTimeRate: number;
+        };
+        presentEmployees: {
+            id: string;
+            firstName: string;
+            lastName: string;
+            email: string;
+            department: string;
+            position: string;
+            checkIn: string;
+            checkOut: string | null;
+            status: import("@prisma/client").$Enums.AttendanceStatus;
+            isLate: boolean;
+            minutesLate: number;
+            workDuration: number;
+        }[];
+        absentEmployees: {
+            id: string;
+            firstName: string;
+            lastName: string;
+            email: string;
+            department: string;
+            position: string;
+        }[];
+        lateEmployees: {
+            minutesLate: number;
+            id: string;
+            firstName: string;
+            lastName: string;
+            email: string;
+            department: string;
+            position: string;
+            checkIn: string;
+            checkOut: string | null;
+            status: import("@prisma/client").$Enums.AttendanceStatus;
+            isLate: boolean;
+            workDuration: number;
+        }[];
+        attendancePeriod: {
+            id: any;
+            name: any;
+            workingStartTime: any;
+            workingEndTime: any;
+            toleranceMinutes: any;
+        };
+    }>;
+    private parseTime;
+    private sendDashboardUpdate;
 }

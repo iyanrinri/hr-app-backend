@@ -228,6 +228,75 @@ let AttendanceRepository = class AttendanceRepository {
             },
         });
     }
+    async getDashboardData(date, attendancePeriodId) {
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+        const allEmployees = await this.prisma.employee.findMany({
+            where: {
+                isDeleted: false,
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        role: true,
+                    },
+                },
+            },
+        });
+        const todayAttendances = await this.prisma.attendance.findMany({
+            where: {
+                date: {
+                    gte: startOfDay,
+                    lte: endOfDay,
+                },
+                attendancePeriodId,
+            },
+            include: {
+                employee: {
+                    include: {
+                        user: {
+                            select: {
+                                email: true,
+                                role: true,
+                            },
+                        },
+                    },
+                },
+                attendancePeriod: true,
+            },
+        });
+        const attendancePeriod = await this.prisma.attendancePeriod.findUnique({
+            where: { id: attendancePeriodId },
+        });
+        return {
+            allEmployees,
+            todayAttendances,
+            attendancePeriod,
+        };
+    }
+    async getEmployeeAttendanceToday(employeeId, date) {
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+        return this.prisma.attendance.findFirst({
+            where: {
+                employeeId,
+                date: {
+                    gte: startOfDay,
+                    lte: endOfDay,
+                },
+            },
+            include: {
+                employee: true,
+                attendancePeriod: true,
+            },
+        });
+    }
 };
 exports.AttendanceRepository = AttendanceRepository;
 exports.AttendanceRepository = AttendanceRepository = __decorate([

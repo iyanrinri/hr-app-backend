@@ -6,6 +6,7 @@ import { ClockOutDto } from '../dto/clock-out.dto';
 import { AttendanceHistoryDto } from '../dto/attendance-history.dto';
 import { AttendanceStatus, AttendanceType, Role } from '@prisma/client';
 import { NotificationService } from '../../../common/services/notification.service';
+import { NotificationGateway } from '../../../common/gateways/notification.gateway';
 import { AttendanceEvent } from '../../../common/services/kafka.service';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class AttendanceService {
     private attendanceRepository: AttendanceRepository,
     private attendancePeriodService: AttendancePeriodService,
     private notificationService: NotificationService,
+    private notificationGateway: NotificationGateway,
   ) {}
 
   async clockIn(employeeId: bigint, clockInDto: ClockInDto, ipAddress?: string, userAgent?: string) {
@@ -81,6 +83,9 @@ export class AttendanceService {
 
     // Send notification after successful clock-in
     await this.sendClockInNotification(employeeId, now, attendance.status === AttendanceStatus.LATE, locationData);
+
+    // Send dashboard update to admin clients
+    await this.sendDashboardUpdate();
 
     return {
       status: 'success',
@@ -157,6 +162,9 @@ export class AttendanceService {
       locationData,
       !!existingAttendance.checkOut // was already clocked out
     );
+
+    // Send dashboard update to admin clients
+    await this.sendDashboardUpdate();
 
     return {
       status: 'success',
@@ -455,5 +463,124 @@ export class AttendanceService {
       location: log.location ? JSON.parse(log.location) : null,
       createdAt: log.createdAt instanceof Date ? log.createdAt.toISOString() : log.createdAt,
     };
+  }
+
+  async getDashboardToday() {
+    // Get active attendance period
+    const activePeriod = await this.attendancePeriodService.getActivePeriod();
+    if (!activePeriod) {
+      throw new NotFoundException('No active attendance period found');
+    }
+
+    const today = new Date();
+    const dashboardData = await this.attendanceRepository.getDashboardData(today, Number(activePeriod.id));
+
+    // Calculate working hours for late detection
+    const workingStartTime = this.parseTime(activePeriod.workingStartTime);
+    const toleranceMinutes = activePeriod.lateToleranceMinutes || 0;
+    const lateThreshold = new Date(today);
+    lateThreshold.setHours(workingStartTime.hours, workingStartTime.minutes + toleranceMinutes, 0, 0);
+
+    // Process data
+    const presentEmployees = [];
+    const lateEmployees = [];
+    const employeeAttendanceMap = new Map();
+
+    // Map attendances by employee ID
+    for (const attendance of dashboardData.todayAttendances) {
+      employeeAttendanceMap.set(Number(attendance.employeeId), attendance);
+      
+      const employee = attendance.employee;
+      
+      if (attendance.checkIn) {
+        const checkInTime = new Date(attendance.checkIn);
+        const isLate = checkInTime > lateThreshold;
+        const minutesLate = isLate ? Math.floor((checkInTime.getTime() - lateThreshold.getTime()) / 60000) : 0;
+
+        const employeeData = {
+          id: employee.id.toString(),
+          firstName: employee.firstName,
+          lastName: employee.lastName,
+          email: employee.user.email,
+          department: employee.department,
+          position: employee.position,
+          checkIn: attendance.checkIn instanceof Date ? attendance.checkIn.toISOString() : attendance.checkIn,
+          checkOut: attendance.checkOut ? (attendance.checkOut instanceof Date ? attendance.checkOut.toISOString() : attendance.checkOut) : null,
+          status: attendance.status || 'PRESENT',
+          isLate,
+          minutesLate,
+          workDuration: attendance.workDuration || 0,
+        };
+
+        presentEmployees.push(employeeData);
+        
+        if (isLate) {
+          lateEmployees.push({
+            ...employeeData,
+            minutesLate,
+          });
+        }
+      }
+    }
+
+    // Find absent employees
+    const absentEmployees = dashboardData.allEmployees
+      .filter(emp => !employeeAttendanceMap.has(Number(emp.id)))
+      .map(emp => ({
+        id: emp.id.toString(),
+        firstName: emp.firstName,
+        lastName: emp.lastName,
+        email: emp.user.email,
+        department: emp.department,
+        position: emp.position,
+      }));
+
+    // Calculate statistics
+    const totalEmployees = dashboardData.allEmployees.length;
+    const totalPresent = presentEmployees.length;
+    const totalAbsent = absentEmployees.length;
+    const totalLate = lateEmployees.length;
+    const attendanceRate = totalEmployees > 0 ? (totalPresent / totalEmployees) * 100 : 0;
+    const lateRate = totalEmployees > 0 ? (totalLate / totalEmployees) * 100 : 0;
+    const onTimeRate = totalEmployees > 0 ? ((totalPresent - totalLate) / totalEmployees) * 100 : 0;
+
+    return {
+      date: today.toISOString().split('T')[0],
+      summary: {
+        totalEmployees,
+        totalPresent,
+        totalAbsent,
+        totalLate,
+        attendanceRate: Math.round(attendanceRate * 10) / 10,
+        lateRate: Math.round(lateRate * 10) / 10,
+        onTimeRate: Math.round(onTimeRate * 10) / 10,
+      },
+      presentEmployees,
+      absentEmployees,
+      lateEmployees,
+      attendancePeriod: {
+        id: activePeriod.id,
+        name: activePeriod.name,
+        workingStartTime: activePeriod.workingStartTime,
+        workingEndTime: activePeriod.workingEndTime,
+        toleranceMinutes: activePeriod.lateToleranceMinutes,
+      },
+    };
+  }
+
+  private parseTime(timeString: string) {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return { hours, minutes };
+  }
+
+  // Send dashboard update notification
+  private async sendDashboardUpdate() {
+    try {
+      const dashboardData = await this.getDashboardToday();
+      await this.notificationGateway.sendDashboardUpdate(dashboardData);
+    } catch (error) {
+      // Don't block attendance process if dashboard update fails
+      console.error('Failed to send dashboard update:', error);
+    }
   }
 }

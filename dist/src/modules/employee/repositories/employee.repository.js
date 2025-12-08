@@ -113,6 +113,14 @@ let EmployeeRepository = class EmployeeRepository {
             });
         });
     }
+    async findByUserId(userId) {
+        return this.prisma.employee.findUnique({
+            where: { userId },
+            include: {
+                user: true,
+            },
+        });
+    }
 };
 exports.EmployeeRepository = EmployeeRepository;
 exports.EmployeeRepository = EmployeeRepository = __decorate([

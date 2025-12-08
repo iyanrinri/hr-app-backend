@@ -347,4 +347,148 @@ export declare class AttendanceRepository {
         position: string;
         department: string;
     } | null>;
+    getDashboardData(date: Date, attendancePeriodId: number): Promise<{
+        allEmployees: ({
+            user: {
+                id: bigint;
+                email: string;
+                role: import("@prisma/client").$Enums.Role;
+            };
+        } & {
+            id: bigint;
+            isDeleted: boolean;
+            deletedAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+            firstName: string;
+            lastName: string;
+            position: string;
+            department: string;
+            joinDate: Date;
+            baseSalary: Prisma.Decimal;
+            userId: bigint;
+        })[];
+        todayAttendances: ({
+            employee: {
+                user: {
+                    email: string;
+                    role: import("@prisma/client").$Enums.Role;
+                };
+            } & {
+                id: bigint;
+                isDeleted: boolean;
+                deletedAt: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+                firstName: string;
+                lastName: string;
+                position: string;
+                department: string;
+                joinDate: Date;
+                baseSalary: Prisma.Decimal;
+                userId: bigint;
+            };
+            attendancePeriod: {
+                id: bigint;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                description: string | null;
+                startDate: Date;
+                endDate: Date;
+                workingDaysPerWeek: number;
+                workingHoursPerDay: number;
+                workingStartTime: string;
+                workingEndTime: string;
+                allowSaturdayWork: boolean;
+                allowSundayWork: boolean;
+                lateToleranceMinutes: number;
+                earlyLeaveToleranceMinutes: number;
+                isActive: boolean;
+                createdBy: bigint;
+            };
+        } & {
+            id: bigint;
+            createdAt: Date;
+            updatedAt: Date;
+            status: import("@prisma/client").$Enums.AttendanceStatus;
+            notes: string | null;
+            employeeId: bigint;
+            attendancePeriodId: bigint;
+            date: Date;
+            checkIn: Date | null;
+            checkOut: Date | null;
+            checkInLocation: string | null;
+            checkOutLocation: string | null;
+            workDuration: number | null;
+        })[];
+        attendancePeriod: {
+            id: bigint;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            description: string | null;
+            startDate: Date;
+            endDate: Date;
+            workingDaysPerWeek: number;
+            workingHoursPerDay: number;
+            workingStartTime: string;
+            workingEndTime: string;
+            allowSaturdayWork: boolean;
+            allowSundayWork: boolean;
+            lateToleranceMinutes: number;
+            earlyLeaveToleranceMinutes: number;
+            isActive: boolean;
+            createdBy: bigint;
+        } | null;
+    }>;
+    getEmployeeAttendanceToday(employeeId: number, date: Date): Promise<({
+        employee: {
+            id: bigint;
+            isDeleted: boolean;
+            deletedAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+            firstName: string;
+            lastName: string;
+            position: string;
+            department: string;
+            joinDate: Date;
+            baseSalary: Prisma.Decimal;
+            userId: bigint;
+        };
+        attendancePeriod: {
+            id: bigint;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            description: string | null;
+            startDate: Date;
+            endDate: Date;
+            workingDaysPerWeek: number;
+            workingHoursPerDay: number;
+            workingStartTime: string;
+            workingEndTime: string;
+            allowSaturdayWork: boolean;
+            allowSundayWork: boolean;
+            lateToleranceMinutes: number;
+            earlyLeaveToleranceMinutes: number;
+            isActive: boolean;
+            createdBy: bigint;
+        };
+    } & {
+        id: bigint;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("@prisma/client").$Enums.AttendanceStatus;
+        notes: string | null;
+        employeeId: bigint;
+        attendancePeriodId: bigint;
+        date: Date;
+        checkIn: Date | null;
+        checkOut: Date | null;
+        checkInLocation: string | null;
+        checkOutLocation: string | null;
+        workDuration: number | null;
+    }) | null>;
 }

@@ -136,4 +136,13 @@ export class EmployeeRepository {
       });
     });
   }
+
+  async findByUserId(userId: bigint): Promise<Employee | null> {
+    return this.prisma.employee.findUnique({
+      where: { userId },
+      include: {
+        user: true,
+      },
+    });
+  }
 }
