@@ -20,6 +20,7 @@ class UpdateEmployeeDto {
     position;
     department;
     baseSalary;
+    managerId;
 }
 exports.UpdateEmployeeDto = UpdateEmployeeDto;
 __decorate([
@@ -93,4 +94,14 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], UpdateEmployeeDto.prototype, "baseSalary", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: 456,
+        description: 'Manager Employee ID (set to null to remove manager)',
+        required: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], UpdateEmployeeDto.prototype, "managerId", void 0);
 //# sourceMappingURL=update-employee.dto.js.map

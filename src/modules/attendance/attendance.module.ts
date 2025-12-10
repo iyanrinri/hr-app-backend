@@ -6,9 +6,10 @@ import { AttendancePeriodModule } from '../attendance-period/attendance-period.m
 import { EmployeeModule } from '../employee/employee.module';
 import { DatabaseModule } from '../../database/database.module';
 import { NotificationModule } from '../../common/modules/notification.module';
+import { SettingsModule } from '../settings/settings.module';
 
 @Module({
-  imports: [DatabaseModule, AttendancePeriodModule, EmployeeModule, NotificationModule],
+  imports: [DatabaseModule, AttendancePeriodModule, EmployeeModule, NotificationModule, SettingsModule],
   controllers: [AttendanceController],
   providers: [AttendanceService, AttendanceRepository],
   exports: [AttendanceService, AttendanceRepository],

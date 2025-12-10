@@ -2,6 +2,7 @@ import { EmployeeRepository } from '../repositories/employee.repository';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { UpdateEmployeeDto } from '../dto/update-employee.dto';
 import { FindAllEmployeesDto } from '../dto/find-all-employees.dto';
+import { AssignSubordinatesDto, SetManagerDto, EmployeeHierarchyResponseDto, OrganizationTreeDto } from '../dto/employee-hierarchy.dto';
 import { Prisma, Role } from '@prisma/client';
 export declare class EmployeeService {
     private repository;
@@ -18,6 +19,7 @@ export declare class EmployeeService {
         department: string;
         joinDate: Date;
         baseSalary: Prisma.Decimal;
+        managerId: bigint | null;
         userId: bigint;
     }>;
     findAll(query: FindAllEmployeesDto, userRole: Role): Promise<any[] | {
@@ -45,6 +47,7 @@ export declare class EmployeeService {
         department: string;
         joinDate: Date;
         baseSalary: Prisma.Decimal;
+        managerId: bigint | null;
         userId: bigint;
     }>;
     remove(id: bigint, userRole: Role, userId: string): Promise<{
@@ -59,6 +62,7 @@ export declare class EmployeeService {
         department: string;
         joinDate: Date;
         baseSalary: Prisma.Decimal;
+        managerId: bigint | null;
         userId: bigint;
     }>;
     restore(id: bigint): Promise<any>;
@@ -74,6 +78,26 @@ export declare class EmployeeService {
         department: string;
         joinDate: Date;
         baseSalary: Prisma.Decimal;
+        managerId: bigint | null;
         userId: bigint;
     }>;
+    assignSubordinates(managerId: bigint, assignDto: AssignSubordinatesDto): Promise<{
+        message: string;
+        managerId: number;
+        assignedSubordinates: number[];
+    }>;
+    setManager(employeeId: bigint, setManagerDto: SetManagerDto): Promise<{
+        message: string;
+        employeeId: number;
+        managerId: null;
+    } | {
+        message: string;
+        employeeId: number;
+        managerId: number;
+    }>;
+    getOrganizationTree(employeeId: bigint): Promise<OrganizationTreeDto>;
+    getAllSubordinates(managerId: bigint): Promise<EmployeeHierarchyResponseDto[]>;
+    getManagementChain(employeeId: bigint): Promise<any[]>;
+    private validateNoCyclicDependency;
+    private transformEmployee;
 }

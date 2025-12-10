@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, Request } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiBody, ApiSecurity } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, Request, Put } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiBody, ApiSecurity, ApiParam } from '@nestjs/swagger';
 import { EmployeeService } from '../services/employee.service';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { UpdateEmployeeDto } from '../dto/update-employee.dto';
 import { FindAllEmployeesDto } from '../dto/find-all-employees.dto';
 import { PaginatedEmployeeResponseDto } from '../dto/paginated-response.dto';
+import { AssignSubordinatesDto, SetManagerDto, OrganizationTreeDto, EmployeeHierarchyResponseDto } from '../dto/employee-hierarchy.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -178,5 +179,76 @@ export class EmployeeController {
   @Roles(Role.SUPER)
   restore(@Param('id', ParseIntPipe) id: number) {
     return this.employeeService.restore(BigInt(id));
+  }
+
+  // Hierarchy Management Endpoints
+
+  @Post(':id/subordinates')
+  @ApiOperation({ summary: 'Assign subordinates to manager (Parent adds Children)' })
+  @ApiParam({ name: 'id', description: 'Manager Employee ID' })
+  @ApiBody({ type: AssignSubordinatesDto })
+  @ApiResponse({ status: 200, description: 'Subordinates assigned successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad request - Circular dependency or invalid data.' })
+  @ApiResponse({ status: 404, description: 'Manager or subordinates not found.' })
+  assignSubordinates(
+    @Param('id', ParseIntPipe) managerId: number, 
+    @Body() assignDto: AssignSubordinatesDto
+  ) {
+    return this.employeeService.assignSubordinates(BigInt(managerId), assignDto);
+  }
+
+  @Put(':id/manager')
+  @ApiOperation({ summary: 'Set or update manager for employee (Child sets Parent)' })
+  @ApiParam({ name: 'id', description: 'Employee ID' })
+  @ApiBody({ type: SetManagerDto })
+  @ApiResponse({ status: 200, description: 'Manager set successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad request - Cannot set self as manager or circular dependency.' })
+  @ApiResponse({ status: 404, description: 'Employee or manager not found.' })
+  setManager(
+    @Param('id', ParseIntPipe) employeeId: number, 
+    @Body() setManagerDto: SetManagerDto
+  ) {
+    return this.employeeService.setManager(BigInt(employeeId), setManagerDto);
+  }
+
+  @Get(':id/organization-tree')
+  @ApiOperation({ summary: 'Get organization tree for employee' })
+  @ApiParam({ name: 'id', description: 'Employee ID' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Organization tree retrieved successfully.',
+    type: OrganizationTreeDto 
+  })
+  @ApiResponse({ status: 404, description: 'Employee not found.' })
+  @Roles(Role.SUPER, Role.HR, Role.EMPLOYEE) // Allow employees to see their own hierarchy
+  getOrganizationTree(@Param('id', ParseIntPipe) employeeId: number) {
+    return this.employeeService.getOrganizationTree(BigInt(employeeId));
+  }
+
+  @Get(':id/subordinates')
+  @ApiOperation({ summary: 'Get all subordinates (recursive)' })
+  @ApiParam({ name: 'id', description: 'Manager Employee ID' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'All subordinates retrieved successfully.',
+    type: [EmployeeHierarchyResponseDto] 
+  })
+  @ApiResponse({ status: 404, description: 'Employee not found.' })
+  getAllSubordinates(@Param('id', ParseIntPipe) managerId: number) {
+    return this.employeeService.getAllSubordinates(BigInt(managerId));
+  }
+
+  @Get(':id/management-chain')
+  @ApiOperation({ summary: 'Get management chain from employee to top' })
+  @ApiParam({ name: 'id', description: 'Employee ID' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Management chain retrieved successfully.',
+    type: [EmployeeHierarchyResponseDto] 
+  })
+  @ApiResponse({ status: 404, description: 'Employee not found.' })
+  @Roles(Role.SUPER, Role.HR, Role.EMPLOYEE) // Allow employees to see their own chain
+  getManagementChain(@Param('id', ParseIntPipe) employeeId: number) {
+    return this.employeeService.getManagementChain(BigInt(employeeId));
   }
 }

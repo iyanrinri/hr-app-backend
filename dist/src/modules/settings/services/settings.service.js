@@ -177,10 +177,10 @@ let SettingsService = class SettingsService {
                     settings.checkPointRadius = parsed;
                     break;
                 case 'attendance_checkpoint_lat':
-                    settings.checkPointLatitude = parsed;
+                    settings.checkPointLatitude = parsed && parsed !== '' ? parseFloat(parsed) : null;
                     break;
                 case 'attendance_checkpoint_lng':
-                    settings.checkPointLongitude = parsed;
+                    settings.checkPointLongitude = parsed && parsed !== '' ? parseFloat(parsed) : null;
                     break;
                 case 'attendance_checkpoint_address':
                     settings.checkPointAddress = parsed;
@@ -223,8 +223,8 @@ let SettingsService = class SettingsService {
             { key: 'attendance_weekend_work', value: 'false', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Allow weekend attendance', dataType: create_setting_dto_1.SettingDataType.BOOLEAN, isPublic: false },
             { key: 'attendance_checkpoint_enabled', value: 'false', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Enable location-based check point', dataType: create_setting_dto_1.SettingDataType.BOOLEAN, isPublic: false },
             { key: 'attendance_checkpoint_radius', value: '100', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Check point radius in meters', dataType: create_setting_dto_1.SettingDataType.INTEGER, isPublic: false },
-            { key: 'attendance_checkpoint_lat', value: '', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Check point latitude', dataType: create_setting_dto_1.SettingDataType.INTEGER, isPublic: false },
-            { key: 'attendance_checkpoint_lng', value: '', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Check point longitude', dataType: create_setting_dto_1.SettingDataType.INTEGER, isPublic: false },
+            { key: 'attendance_checkpoint_lat', value: '', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Check point latitude', dataType: create_setting_dto_1.SettingDataType.STRING, isPublic: false },
+            { key: 'attendance_checkpoint_lng', value: '', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Check point longitude', dataType: create_setting_dto_1.SettingDataType.STRING, isPublic: false },
             { key: 'attendance_checkpoint_address', value: '', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Check point address', dataType: create_setting_dto_1.SettingDataType.STRING, isPublic: false },
             { key: 'attendance_late_tolerance', value: '15', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Late tolerance in minutes', dataType: create_setting_dto_1.SettingDataType.INTEGER, isPublic: false },
             { key: 'attendance_early_leave_tolerance', value: '15', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Early leave tolerance in minutes', dataType: create_setting_dto_1.SettingDataType.INTEGER, isPublic: false },

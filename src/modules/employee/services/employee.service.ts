@@ -1,8 +1,9 @@
-import { Injectable, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { EmployeeRepository } from '../repositories/employee.repository';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { UpdateEmployeeDto } from '../dto/update-employee.dto';
 import { FindAllEmployeesDto } from '../dto/find-all-employees.dto';
+import { AssignSubordinatesDto, SetManagerDto, EmployeeHierarchyResponseDto, OrganizationTreeDto } from '../dto/employee-hierarchy.dto';
 import { Prisma, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
@@ -27,13 +28,21 @@ export class EmployeeService {
   constructor(private repository: EmployeeRepository) {}
 
   async create(createEmployeeDto: CreateEmployeeDto) {
-    const { email, password, ...employeeData } = createEmployeeDto;
+    const { email, password, managerId, ...employeeData } = createEmployeeDto;
 
     // Hash the password from request body
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // If managerId is provided, verify manager exists
+    if (managerId) {
+      const manager = await this.repository.findById(BigInt(managerId));
+      if (!manager) {
+        throw new NotFoundException('Manager not found');
+      }
+    }
+
     try {
-      return await this.repository.create({
+      const createData: any = {
         ...employeeData,
         user: {
           create: {
@@ -42,7 +51,16 @@ export class EmployeeService {
             role: 'EMPLOYEE',
           },
         },
-      });
+      };
+
+      // Add manager relationship if provided
+      if (managerId) {
+        createData.manager = {
+          connect: { id: BigInt(managerId) }
+        };
+      }
+
+      return await this.repository.create(createData);
     } catch (error) {
       const meta = parsePrismaError(error);
       if (meta?.code === 409) {
@@ -300,5 +318,165 @@ export class EmployeeService {
       throw new NotFoundException('Employee not found for this user');
     }
     return employee;
+  }
+
+  // Hierarchy Management Methods
+
+  /**
+   * Assign multiple subordinates to a manager (Parent adds Children)
+   */
+  async assignSubordinates(managerId: bigint, assignDto: AssignSubordinatesDto) {
+    // Verify manager exists
+    const manager = await this.repository.findById(managerId);
+    if (!manager) {
+      throw new NotFoundException('Manager not found');
+    }
+
+    const subordinateIds = assignDto.subordinateIds.map(id => BigInt(id));
+
+    // Verify all subordinates exist
+    const subordinates = await this.repository.findByIds(subordinateIds);
+    if (subordinates.length !== subordinateIds.length) {
+      throw new BadRequestException('One or more subordinates not found');
+    }
+
+    // Validate no circular dependencies
+    await this.validateNoCyclicDependency(managerId, subordinateIds);
+
+    // Update all subordinates to have this manager
+    await this.repository.updateManagerForEmployees(subordinateIds, managerId);
+
+    return {
+      message: 'Subordinates assigned successfully',
+      managerId: Number(managerId),
+      assignedSubordinates: subordinateIds.map(id => Number(id))
+    };
+  }
+
+  /**
+   * Set or update manager for an employee (Child sets Parent)
+   */
+  async setManager(employeeId: bigint, setManagerDto: SetManagerDto) {
+    // Verify employee exists
+    const employee = await this.repository.findById(employeeId);
+    if (!employee) {
+      throw new NotFoundException('Employee not found');
+    }
+
+    // If removing manager
+    if (setManagerDto.managerId === undefined || setManagerDto.managerId === null) {
+      await this.repository.updateManager(employeeId, null);
+      return {
+        message: 'Manager removed successfully',
+        employeeId: Number(employeeId),
+        managerId: null
+      };
+    }
+
+    const managerId = BigInt(setManagerDto.managerId);
+
+    // Verify manager exists
+    const manager = await this.repository.findById(managerId);
+    if (!manager) {
+      throw new NotFoundException('Manager not found');
+    }
+
+    // Employee cannot be their own manager
+    if (managerId === employeeId) {
+      throw new BadRequestException('Employee cannot be their own manager');
+    }
+
+    // Validate no circular dependencies
+    await this.validateNoCyclicDependency(managerId, [employeeId]);
+
+    await this.repository.updateManager(employeeId, managerId);
+
+    return {
+      message: 'Manager set successfully',
+      employeeId: Number(employeeId),
+      managerId: Number(managerId)
+    };
+  }
+
+  /**
+   * Get organization tree for an employee
+   */
+  async getOrganizationTree(employeeId: bigint): Promise<OrganizationTreeDto> {
+    const employee = await this.repository.findWithHierarchy(employeeId);
+    if (!employee) {
+      throw new NotFoundException('Employee not found');
+    }
+
+    // Get management chain (from employee to top)
+    const managementChain = await this.getManagementChain(employeeId);
+    
+    // Get all subordinates
+    const subordinates = await this.repository.findSubordinates(employeeId);
+    
+    // Get siblings (employees with same manager)
+    const siblings = employee.managerId 
+      ? await this.repository.findSiblings(employeeId, employee.managerId)
+      : [];
+
+    return {
+      manager: employee.manager ? this.transformEmployee(employee.manager) : undefined,
+      employee: this.transformEmployee(employee),
+      subordinates: subordinates.map(sub => this.transformEmployee(sub)),
+      siblings: siblings.map(sib => this.transformEmployee(sib)),
+      managementChain: managementChain.map(emp => this.transformEmployee(emp))
+    };
+  }
+
+  /**
+   * Get all subordinates recursively
+   */
+  async getAllSubordinates(managerId: bigint): Promise<EmployeeHierarchyResponseDto[]> {
+    const allSubordinates = await this.repository.findAllSubordinatesRecursive(managerId);
+    return allSubordinates.map(emp => this.transformEmployee(emp));
+  }
+
+  /**
+   * Get management chain from employee to top
+   */
+  async getManagementChain(employeeId: bigint): Promise<any[]> {
+    const chain = [];
+    let currentEmployee = await this.repository.findWithManager(employeeId);
+    
+    while (currentEmployee?.manager) {
+      chain.push(currentEmployee.manager);
+      currentEmployee = await this.repository.findWithManager(currentEmployee.manager.id);
+    }
+    
+    return chain;
+  }
+
+  /**
+   * Validate that assigning these relationships won't create cycles
+   */
+  private async validateNoCyclicDependency(managerId: bigint, subordinateIds: bigint[]) {
+    for (const subordinateId of subordinateIds) {
+      const managementChain = await this.getManagementChain(managerId);
+      const chainIds = managementChain.map(emp => emp.id);
+      
+      if (chainIds.includes(subordinateId)) {
+        throw new BadRequestException(
+          `Circular dependency detected: Employee ${subordinateId} is already in the management chain of manager ${managerId}`
+        );
+      }
+    }
+  }
+
+  /**
+   * Transform employee to hierarchy response DTO
+   */
+  private transformEmployee(employee: any): EmployeeHierarchyResponseDto {
+    return {
+      id: Number(employee.id),
+      firstName: employee.firstName,
+      lastName: employee.lastName,
+      position: employee.position,
+      department: employee.department,
+      managerId: employee.managerId ? Number(employee.managerId) : undefined
+    };
   }
 }

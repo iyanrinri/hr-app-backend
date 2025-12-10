@@ -2,6 +2,7 @@ import { EmployeeService } from '../services/employee.service';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { UpdateEmployeeDto } from '../dto/update-employee.dto';
 import { FindAllEmployeesDto } from '../dto/find-all-employees.dto';
+import { AssignSubordinatesDto, SetManagerDto, OrganizationTreeDto, EmployeeHierarchyResponseDto } from '../dto/employee-hierarchy.dto';
 export declare class EmployeeController {
     private readonly employeeService;
     constructor(employeeService: EmployeeService);
@@ -17,6 +18,7 @@ export declare class EmployeeController {
         department: string;
         joinDate: Date;
         baseSalary: import("@prisma/client-runtime-utils").Decimal;
+        managerId: bigint | null;
         userId: bigint;
     }>;
     findAll(query: FindAllEmployeesDto, req: any): Promise<any[] | {
@@ -43,6 +45,7 @@ export declare class EmployeeController {
         department: string;
         joinDate: Date;
         baseSalary: import("@prisma/client-runtime-utils").Decimal;
+        managerId: bigint | null;
         userId: bigint;
     }>;
     remove(id: number, req: any): Promise<{
@@ -57,7 +60,25 @@ export declare class EmployeeController {
         department: string;
         joinDate: Date;
         baseSalary: import("@prisma/client-runtime-utils").Decimal;
+        managerId: bigint | null;
         userId: bigint;
     }>;
     restore(id: number): Promise<any>;
+    assignSubordinates(managerId: number, assignDto: AssignSubordinatesDto): Promise<{
+        message: string;
+        managerId: number;
+        assignedSubordinates: number[];
+    }>;
+    setManager(employeeId: number, setManagerDto: SetManagerDto): Promise<{
+        message: string;
+        employeeId: number;
+        managerId: null;
+    } | {
+        message: string;
+        employeeId: number;
+        managerId: number;
+    }>;
+    getOrganizationTree(employeeId: number): Promise<OrganizationTreeDto>;
+    getAllSubordinates(managerId: number): Promise<EmployeeHierarchyResponseDto[]>;
+    getManagementChain(employeeId: number): Promise<any[]>;
 }

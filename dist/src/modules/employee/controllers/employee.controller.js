@@ -19,6 +19,7 @@ const employee_service_1 = require("../services/employee.service");
 const create_employee_dto_1 = require("../dto/create-employee.dto");
 const update_employee_dto_1 = require("../dto/update-employee.dto");
 const find_all_employees_dto_1 = require("../dto/find-all-employees.dto");
+const employee_hierarchy_dto_1 = require("../dto/employee-hierarchy.dto");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../../auth/guards/roles.guard");
 const roles_decorator_1 = require("../../../common/decorators/roles.decorator");
@@ -45,6 +46,21 @@ let EmployeeController = class EmployeeController {
     }
     restore(id) {
         return this.employeeService.restore(BigInt(id));
+    }
+    assignSubordinates(managerId, assignDto) {
+        return this.employeeService.assignSubordinates(BigInt(managerId), assignDto);
+    }
+    setManager(employeeId, setManagerDto) {
+        return this.employeeService.setManager(BigInt(employeeId), setManagerDto);
+    }
+    getOrganizationTree(employeeId) {
+        return this.employeeService.getOrganizationTree(BigInt(employeeId));
+    }
+    getAllSubordinates(managerId) {
+        return this.employeeService.getAllSubordinates(BigInt(managerId));
+    }
+    getManagementChain(employeeId) {
+        return this.employeeService.getManagementChain(BigInt(employeeId));
     }
 };
 exports.EmployeeController = EmployeeController;
@@ -226,6 +242,81 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], EmployeeController.prototype, "restore", null);
+__decorate([
+    (0, common_1.Post)(':id/subordinates'),
+    (0, swagger_1.ApiOperation)({ summary: 'Assign subordinates to manager (Parent adds Children)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Manager Employee ID' }),
+    (0, swagger_1.ApiBody)({ type: employee_hierarchy_dto_1.AssignSubordinatesDto }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Subordinates assigned successfully.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Bad request - Circular dependency or invalid data.' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Manager or subordinates not found.' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, employee_hierarchy_dto_1.AssignSubordinatesDto]),
+    __metadata("design:returntype", void 0)
+], EmployeeController.prototype, "assignSubordinates", null);
+__decorate([
+    (0, common_1.Put)(':id/manager'),
+    (0, swagger_1.ApiOperation)({ summary: 'Set or update manager for employee (Child sets Parent)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Employee ID' }),
+    (0, swagger_1.ApiBody)({ type: employee_hierarchy_dto_1.SetManagerDto }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Manager set successfully.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Bad request - Cannot set self as manager or circular dependency.' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee or manager not found.' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, employee_hierarchy_dto_1.SetManagerDto]),
+    __metadata("design:returntype", void 0)
+], EmployeeController.prototype, "setManager", null);
+__decorate([
+    (0, common_1.Get)(':id/organization-tree'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get organization tree for employee' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Employee ID' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Organization tree retrieved successfully.',
+        type: employee_hierarchy_dto_1.OrganizationTreeDto
+    }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee not found.' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR, client_1.Role.EMPLOYEE),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], EmployeeController.prototype, "getOrganizationTree", null);
+__decorate([
+    (0, common_1.Get)(':id/subordinates'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get all subordinates (recursive)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Manager Employee ID' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'All subordinates retrieved successfully.',
+        type: [employee_hierarchy_dto_1.EmployeeHierarchyResponseDto]
+    }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee not found.' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], EmployeeController.prototype, "getAllSubordinates", null);
+__decorate([
+    (0, common_1.Get)(':id/management-chain'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get management chain from employee to top' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Employee ID' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Management chain retrieved successfully.',
+        type: [employee_hierarchy_dto_1.EmployeeHierarchyResponseDto]
+    }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee not found.' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR, client_1.Role.EMPLOYEE),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], EmployeeController.prototype, "getManagementChain", null);
 exports.EmployeeController = EmployeeController = __decorate([
     (0, swagger_1.ApiTags)('employees'),
     (0, common_1.Controller)('employees'),

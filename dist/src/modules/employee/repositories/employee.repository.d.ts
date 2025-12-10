@@ -20,4 +20,13 @@ export declare class EmployeeRepository {
     softDelete(where: Prisma.EmployeeWhereUniqueInput): Promise<Employee>;
     restore(where: Prisma.EmployeeWhereUniqueInput): Promise<Employee>;
     findByUserId(userId: bigint): Promise<Employee | null>;
+    findById(id: bigint): Promise<Employee | null>;
+    findByIds(ids: bigint[]): Promise<Employee[]>;
+    findWithHierarchy(id: bigint): Promise<any | null>;
+    findWithManager(id: bigint): Promise<any | null>;
+    findSubordinates(managerId: bigint): Promise<Employee[]>;
+    findSiblings(employeeId: bigint, managerId: bigint): Promise<Employee[]>;
+    findAllSubordinatesRecursive(managerId: bigint): Promise<Employee[]>;
+    updateManager(employeeId: bigint, managerId: bigint | null): Promise<Employee>;
+    updateManagerForEmployees(employeeIds: bigint[], managerId: bigint): Promise<void>;
 }

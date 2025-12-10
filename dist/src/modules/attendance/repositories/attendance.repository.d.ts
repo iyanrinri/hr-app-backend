@@ -21,6 +21,7 @@ export declare class AttendanceRepository {
             department: string;
             joinDate: Date;
             baseSalary: Prisma.Decimal;
+            managerId: bigint | null;
             userId: bigint;
         };
         attendancePeriod: {
@@ -75,6 +76,7 @@ export declare class AttendanceRepository {
             department: string;
             joinDate: Date;
             baseSalary: Prisma.Decimal;
+            managerId: bigint | null;
             userId: bigint;
         };
         attendancePeriod: {
@@ -132,6 +134,7 @@ export declare class AttendanceRepository {
             department: string;
             joinDate: Date;
             baseSalary: Prisma.Decimal;
+            managerId: bigint | null;
             userId: bigint;
         };
         attendancePeriod: {
@@ -203,6 +206,7 @@ export declare class AttendanceRepository {
             department: string;
             joinDate: Date;
             baseSalary: Prisma.Decimal;
+            managerId: bigint | null;
             userId: bigint;
         };
         attendancePeriod: {
@@ -249,6 +253,7 @@ export declare class AttendanceRepository {
             department: string;
             joinDate: Date;
             baseSalary: Prisma.Decimal;
+            managerId: bigint | null;
             userId: bigint;
         };
         attendancePeriod: {
@@ -297,6 +302,7 @@ export declare class AttendanceRepository {
             department: string;
             joinDate: Date;
             baseSalary: Prisma.Decimal;
+            managerId: bigint | null;
             userId: bigint;
         };
         attendancePeriod: {
@@ -366,6 +372,7 @@ export declare class AttendanceRepository {
             department: string;
             joinDate: Date;
             baseSalary: Prisma.Decimal;
+            managerId: bigint | null;
             userId: bigint;
         })[];
         todayAttendances: ({
@@ -386,6 +393,7 @@ export declare class AttendanceRepository {
                 department: string;
                 joinDate: Date;
                 baseSalary: Prisma.Decimal;
+                managerId: bigint | null;
                 userId: bigint;
             };
             attendancePeriod: {
@@ -455,6 +463,7 @@ export declare class AttendanceRepository {
             department: string;
             joinDate: Date;
             baseSalary: Prisma.Decimal;
+            managerId: bigint | null;
             userId: bigint;
         };
         attendancePeriod: {

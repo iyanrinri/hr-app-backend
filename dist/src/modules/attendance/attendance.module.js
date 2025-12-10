@@ -15,12 +15,13 @@ const attendance_period_module_1 = require("../attendance-period/attendance-peri
 const employee_module_1 = require("../employee/employee.module");
 const database_module_1 = require("../../database/database.module");
 const notification_module_1 = require("../../common/modules/notification.module");
+const settings_module_1 = require("../settings/settings.module");
 let AttendanceModule = class AttendanceModule {
 };
 exports.AttendanceModule = AttendanceModule;
 exports.AttendanceModule = AttendanceModule = __decorate([
     (0, common_1.Module)({
-        imports: [database_module_1.DatabaseModule, attendance_period_module_1.AttendancePeriodModule, employee_module_1.EmployeeModule, notification_module_1.NotificationModule],
+        imports: [database_module_1.DatabaseModule, attendance_period_module_1.AttendancePeriodModule, employee_module_1.EmployeeModule, notification_module_1.NotificationModule, settings_module_1.SettingsModule],
         controllers: [attendance_controller_1.AttendanceController],
         providers: [attendance_service_1.AttendanceService, attendance_repository_1.AttendanceRepository],
         exports: [attendance_service_1.AttendanceService, attendance_repository_1.AttendanceRepository],

@@ -145,4 +145,107 @@ export class EmployeeRepository {
       },
     });
   }
+
+  // Hierarchy Management Methods
+
+  async findById(id: bigint): Promise<Employee | null> {
+    return this.prisma.employee.findFirst({
+      where: { 
+        id,
+        isDeleted: false,
+        user: { isDeleted: false }
+      },
+    });
+  }
+
+  async findByIds(ids: bigint[]): Promise<Employee[]> {
+    return this.prisma.employee.findMany({
+      where: { 
+        id: { in: ids },
+        isDeleted: false,
+        user: { isDeleted: false }
+      },
+    });
+  }
+
+  async findWithHierarchy(id: bigint): Promise<any | null> {
+    return this.prisma.employee.findFirst({
+      where: { 
+        id,
+        isDeleted: false,
+        user: { isDeleted: false }
+      },
+      include: {
+        manager: {
+          where: { isDeleted: false, user: { isDeleted: false } }
+        },
+        subordinates: {
+          where: { isDeleted: false, user: { isDeleted: false } }
+        }
+      }
+    });
+  }
+
+  async findWithManager(id: bigint): Promise<any | null> {
+    return this.prisma.employee.findFirst({
+      where: { 
+        id,
+        isDeleted: false,
+        user: { isDeleted: false }
+      },
+      include: {
+        manager: {
+          where: { isDeleted: false, user: { isDeleted: false } }
+        }
+      }
+    });
+  }
+
+  async findSubordinates(managerId: bigint): Promise<Employee[]> {
+    return this.prisma.employee.findMany({
+      where: { 
+        managerId,
+        isDeleted: false,
+        user: { isDeleted: false }
+      },
+    });
+  }
+
+  async findSiblings(employeeId: bigint, managerId: bigint): Promise<Employee[]> {
+    return this.prisma.employee.findMany({
+      where: { 
+        managerId,
+        id: { not: employeeId },
+        isDeleted: false,
+        user: { isDeleted: false }
+      },
+    });
+  }
+
+  async findAllSubordinatesRecursive(managerId: bigint): Promise<Employee[]> {
+    // This will be a simple implementation. For complex hierarchies, consider using recursive CTEs
+    const directSubordinates = await this.findSubordinates(managerId);
+    const allSubordinates = [...directSubordinates];
+
+    for (const subordinate of directSubordinates) {
+      const subSubordinates = await this.findAllSubordinatesRecursive(subordinate.id);
+      allSubordinates.push(...subSubordinates);
+    }
+
+    return allSubordinates;
+  }
+
+  async updateManager(employeeId: bigint, managerId: bigint | null): Promise<Employee> {
+    return this.prisma.employee.update({
+      where: { id: employeeId },
+      data: { managerId }
+    });
+  }
+
+  async updateManagerForEmployees(employeeIds: bigint[], managerId: bigint): Promise<void> {
+    await this.prisma.employee.updateMany({
+      where: { id: { in: employeeIds } },
+      data: { managerId }
+    });
+  }
 }

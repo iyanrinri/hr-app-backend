@@ -6,12 +6,15 @@ import { AttendanceHistoryDto } from '../dto/attendance-history.dto';
 import { Role } from '@prisma/client';
 import { NotificationService } from '../../../common/services/notification.service';
 import { NotificationGateway } from '../../../common/gateways/notification.gateway';
+import { SettingsService } from '../../settings/services/settings.service';
 export declare class AttendanceService {
     private attendanceRepository;
     private attendancePeriodService;
     private notificationService;
     private notificationGateway;
-    constructor(attendanceRepository: AttendanceRepository, attendancePeriodService: AttendancePeriodService, notificationService: NotificationService, notificationGateway: NotificationGateway);
+    private settingsService;
+    constructor(attendanceRepository: AttendanceRepository, attendancePeriodService: AttendancePeriodService, notificationService: NotificationService, notificationGateway: NotificationGateway, settingsService: SettingsService);
+    private validateLocationCheckpoint;
     clockIn(employeeId: bigint, clockInDto: ClockInDto, ipAddress?: string, userAgent?: string): Promise<{
         status: string;
         message: string;

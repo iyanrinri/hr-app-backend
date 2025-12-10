@@ -8,6 +8,8 @@ import { AttendanceStatus, AttendanceType, Role } from '@prisma/client';
 import { NotificationService } from '../../../common/services/notification.service';
 import { NotificationGateway } from '../../../common/gateways/notification.gateway';
 import { AttendanceEvent } from '../../../common/services/kafka.service';
+import { SettingsService } from '../../settings/services/settings.service';
+import { validateLocation, isValidCoordinates } from '../../../common/utils/location.util';
 
 @Injectable()
 export class AttendanceService {
@@ -16,11 +18,56 @@ export class AttendanceService {
     private attendancePeriodService: AttendancePeriodService,
     private notificationService: NotificationService,
     private notificationGateway: NotificationGateway,
+    private settingsService: SettingsService,
   ) {}
+
+  /**
+   * Validate location if checkpoint is enabled
+   */
+  private async validateLocationCheckpoint(latitude: number, longitude: number): Promise<void> {
+    // Validate coordinates
+    if (!isValidCoordinates(latitude, longitude)) {
+      throw new BadRequestException('Koordinat lokasi tidak valid');
+    }
+
+    // Get attendance settings
+    const attendanceSettings = await this.settingsService.getAttendanceSettings();
+    
+    // Check if location validation is enabled
+    if (!attendanceSettings.checkPointEnabled) {
+      return; // Location validation disabled, skip
+    }
+
+    // Check if checkpoint coordinates are configured
+    if (
+      attendanceSettings.checkPointLatitude === null || 
+      attendanceSettings.checkPointLongitude === null ||
+      attendanceSettings.checkPointLatitude === undefined || 
+      attendanceSettings.checkPointLongitude === undefined
+    ) {
+      throw new BadRequestException('Lokasi checkpoint belum dikonfigurasi oleh admin');
+    }
+
+    // Validate location
+    const validation = validateLocation(
+      latitude,
+      longitude,
+      attendanceSettings.checkPointLatitude,
+      attendanceSettings.checkPointLongitude,
+      attendanceSettings.checkPointRadius
+    );
+
+    if (!validation.isValid) {
+      throw new BadRequestException(validation.message);
+    }
+  }
 
   async clockIn(employeeId: bigint, clockInDto: ClockInDto, ipAddress?: string, userAgent?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    // Validate location first
+    await this.validateLocationCheckpoint(clockInDto.latitude, clockInDto.longitude);
 
     // Check if it's a working day
     const activePeriod = await this.attendancePeriodService.getActivePeriod();
@@ -98,6 +145,9 @@ export class AttendanceService {
   async clockOut(employeeId: bigint, clockOutDto: ClockOutDto, ipAddress?: string, userAgent?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    // Validate location first
+    await this.validateLocationCheckpoint(clockOutDto.latitude, clockOutDto.longitude);
 
     // Check if it's a working day
     const activePeriod = await this.attendancePeriodService.getActivePeriod();

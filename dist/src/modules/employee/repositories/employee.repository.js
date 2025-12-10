@@ -121,6 +121,95 @@ let EmployeeRepository = class EmployeeRepository {
             },
         });
     }
+    async findById(id) {
+        return this.prisma.employee.findFirst({
+            where: {
+                id,
+                isDeleted: false,
+                user: { isDeleted: false }
+            },
+        });
+    }
+    async findByIds(ids) {
+        return this.prisma.employee.findMany({
+            where: {
+                id: { in: ids },
+                isDeleted: false,
+                user: { isDeleted: false }
+            },
+        });
+    }
+    async findWithHierarchy(id) {
+        return this.prisma.employee.findFirst({
+            where: {
+                id,
+                isDeleted: false,
+                user: { isDeleted: false }
+            },
+            include: {
+                manager: {
+                    where: { isDeleted: false, user: { isDeleted: false } }
+                },
+                subordinates: {
+                    where: { isDeleted: false, user: { isDeleted: false } }
+                }
+            }
+        });
+    }
+    async findWithManager(id) {
+        return this.prisma.employee.findFirst({
+            where: {
+                id,
+                isDeleted: false,
+                user: { isDeleted: false }
+            },
+            include: {
+                manager: {
+                    where: { isDeleted: false, user: { isDeleted: false } }
+                }
+            }
+        });
+    }
+    async findSubordinates(managerId) {
+        return this.prisma.employee.findMany({
+            where: {
+                managerId,
+                isDeleted: false,
+                user: { isDeleted: false }
+            },
+        });
+    }
+    async findSiblings(employeeId, managerId) {
+        return this.prisma.employee.findMany({
+            where: {
+                managerId,
+                id: { not: employeeId },
+                isDeleted: false,
+                user: { isDeleted: false }
+            },
+        });
+    }
+    async findAllSubordinatesRecursive(managerId) {
+        const directSubordinates = await this.findSubordinates(managerId);
+        const allSubordinates = [...directSubordinates];
+        for (const subordinate of directSubordinates) {
+            const subSubordinates = await this.findAllSubordinatesRecursive(subordinate.id);
+            allSubordinates.push(...subSubordinates);
+        }
+        return allSubordinates;
+    }
+    async updateManager(employeeId, managerId) {
+        return this.prisma.employee.update({
+            where: { id: employeeId },
+            data: { managerId }
+        });
+    }
+    async updateManagerForEmployees(employeeIds, managerId) {
+        await this.prisma.employee.updateMany({
+            where: { id: { in: employeeIds } },
+            data: { managerId }
+        });
+    }
 };
 exports.EmployeeRepository = EmployeeRepository;
 exports.EmployeeRepository = EmployeeRepository = __decorate([

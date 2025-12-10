@@ -67,10 +67,16 @@ let EmployeeService = class EmployeeService {
         this.repository = repository;
     }
     async create(createEmployeeDto) {
-        const { email, password, ...employeeData } = createEmployeeDto;
+        const { email, password, managerId, ...employeeData } = createEmployeeDto;
         const hashedPassword = await bcrypt.hash(password, 10);
+        if (managerId) {
+            const manager = await this.repository.findById(BigInt(managerId));
+            if (!manager) {
+                throw new common_1.NotFoundException('Manager not found');
+            }
+        }
         try {
-            return await this.repository.create({
+            const createData = {
                 ...employeeData,
                 user: {
                     create: {
@@ -79,7 +85,13 @@ let EmployeeService = class EmployeeService {
                         role: 'EMPLOYEE',
                     },
                 },
-            });
+            };
+            if (managerId) {
+                createData.manager = {
+                    connect: { id: BigInt(managerId) }
+                };
+            }
+            return await this.repository.create(createData);
         }
         catch (error) {
             const meta = parsePrismaError(error);
@@ -291,6 +303,103 @@ let EmployeeService = class EmployeeService {
             throw new common_1.NotFoundException('Employee not found for this user');
         }
         return employee;
+    }
+    async assignSubordinates(managerId, assignDto) {
+        const manager = await this.repository.findById(managerId);
+        if (!manager) {
+            throw new common_1.NotFoundException('Manager not found');
+        }
+        const subordinateIds = assignDto.subordinateIds.map(id => BigInt(id));
+        const subordinates = await this.repository.findByIds(subordinateIds);
+        if (subordinates.length !== subordinateIds.length) {
+            throw new common_1.BadRequestException('One or more subordinates not found');
+        }
+        await this.validateNoCyclicDependency(managerId, subordinateIds);
+        await this.repository.updateManagerForEmployees(subordinateIds, managerId);
+        return {
+            message: 'Subordinates assigned successfully',
+            managerId: Number(managerId),
+            assignedSubordinates: subordinateIds.map(id => Number(id))
+        };
+    }
+    async setManager(employeeId, setManagerDto) {
+        const employee = await this.repository.findById(employeeId);
+        if (!employee) {
+            throw new common_1.NotFoundException('Employee not found');
+        }
+        if (setManagerDto.managerId === undefined || setManagerDto.managerId === null) {
+            await this.repository.updateManager(employeeId, null);
+            return {
+                message: 'Manager removed successfully',
+                employeeId: Number(employeeId),
+                managerId: null
+            };
+        }
+        const managerId = BigInt(setManagerDto.managerId);
+        const manager = await this.repository.findById(managerId);
+        if (!manager) {
+            throw new common_1.NotFoundException('Manager not found');
+        }
+        if (managerId === employeeId) {
+            throw new common_1.BadRequestException('Employee cannot be their own manager');
+        }
+        await this.validateNoCyclicDependency(managerId, [employeeId]);
+        await this.repository.updateManager(employeeId, managerId);
+        return {
+            message: 'Manager set successfully',
+            employeeId: Number(employeeId),
+            managerId: Number(managerId)
+        };
+    }
+    async getOrganizationTree(employeeId) {
+        const employee = await this.repository.findWithHierarchy(employeeId);
+        if (!employee) {
+            throw new common_1.NotFoundException('Employee not found');
+        }
+        const managementChain = await this.getManagementChain(employeeId);
+        const subordinates = await this.repository.findSubordinates(employeeId);
+        const siblings = employee.managerId
+            ? await this.repository.findSiblings(employeeId, employee.managerId)
+            : [];
+        return {
+            manager: employee.manager ? this.transformEmployee(employee.manager) : undefined,
+            employee: this.transformEmployee(employee),
+            subordinates: subordinates.map(sub => this.transformEmployee(sub)),
+            siblings: siblings.map(sib => this.transformEmployee(sib)),
+            managementChain: managementChain.map(emp => this.transformEmployee(emp))
+        };
+    }
+    async getAllSubordinates(managerId) {
+        const allSubordinates = await this.repository.findAllSubordinatesRecursive(managerId);
+        return allSubordinates.map(emp => this.transformEmployee(emp));
+    }
+    async getManagementChain(employeeId) {
+        const chain = [];
+        let currentEmployee = await this.repository.findWithManager(employeeId);
+        while (currentEmployee?.manager) {
+            chain.push(currentEmployee.manager);
+            currentEmployee = await this.repository.findWithManager(currentEmployee.manager.id);
+        }
+        return chain;
+    }
+    async validateNoCyclicDependency(managerId, subordinateIds) {
+        for (const subordinateId of subordinateIds) {
+            const managementChain = await this.getManagementChain(managerId);
+            const chainIds = managementChain.map(emp => emp.id);
+            if (chainIds.includes(subordinateId)) {
+                throw new common_1.BadRequestException(`Circular dependency detected: Employee ${subordinateId} is already in the management chain of manager ${managerId}`);
+            }
+        }
+    }
+    transformEmployee(employee) {
+        return {
+            id: Number(employee.id),
+            firstName: employee.firstName,
+            lastName: employee.lastName,
+            position: employee.position,
+            department: employee.department,
+            managerId: employee.managerId ? Number(employee.managerId) : undefined
+        };
     }
 };
 exports.EmployeeService = EmployeeService;

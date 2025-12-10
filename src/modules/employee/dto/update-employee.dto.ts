@@ -65,4 +65,13 @@ export class UpdateEmployeeDto {
   @IsOptional()
   @IsNumber()
   baseSalary?: number;
+
+  @ApiProperty({ 
+    example: 456,
+    description: 'Manager Employee ID (set to null to remove manager)',
+    required: false
+  })
+  @IsOptional()
+  @IsNumber()
+  managerId?: number;
 }

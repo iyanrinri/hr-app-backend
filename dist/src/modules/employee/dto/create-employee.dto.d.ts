@@ -7,4 +7,5 @@ export declare class CreateEmployeeDto {
     department: string;
     joinDate: string;
     baseSalary: number;
+    managerId?: number;
 }

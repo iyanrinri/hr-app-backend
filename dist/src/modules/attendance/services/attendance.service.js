@@ -16,20 +16,44 @@ const attendance_period_service_1 = require("../../attendance-period/services/at
 const client_1 = require("@prisma/client");
 const notification_service_1 = require("../../../common/services/notification.service");
 const notification_gateway_1 = require("../../../common/gateways/notification.gateway");
+const settings_service_1 = require("../../settings/services/settings.service");
+const location_util_1 = require("../../../common/utils/location.util");
 let AttendanceService = class AttendanceService {
     attendanceRepository;
     attendancePeriodService;
     notificationService;
     notificationGateway;
-    constructor(attendanceRepository, attendancePeriodService, notificationService, notificationGateway) {
+    settingsService;
+    constructor(attendanceRepository, attendancePeriodService, notificationService, notificationGateway, settingsService) {
         this.attendanceRepository = attendanceRepository;
         this.attendancePeriodService = attendancePeriodService;
         this.notificationService = notificationService;
         this.notificationGateway = notificationGateway;
+        this.settingsService = settingsService;
+    }
+    async validateLocationCheckpoint(latitude, longitude) {
+        if (!(0, location_util_1.isValidCoordinates)(latitude, longitude)) {
+            throw new common_1.BadRequestException('Koordinat lokasi tidak valid');
+        }
+        const attendanceSettings = await this.settingsService.getAttendanceSettings();
+        if (!attendanceSettings.checkPointEnabled) {
+            return;
+        }
+        if (attendanceSettings.checkPointLatitude === null ||
+            attendanceSettings.checkPointLongitude === null ||
+            attendanceSettings.checkPointLatitude === undefined ||
+            attendanceSettings.checkPointLongitude === undefined) {
+            throw new common_1.BadRequestException('Lokasi checkpoint belum dikonfigurasi oleh admin');
+        }
+        const validation = (0, location_util_1.validateLocation)(latitude, longitude, attendanceSettings.checkPointLatitude, attendanceSettings.checkPointLongitude, attendanceSettings.checkPointRadius);
+        if (!validation.isValid) {
+            throw new common_1.BadRequestException(validation.message);
+        }
     }
     async clockIn(employeeId, clockInDto, ipAddress, userAgent) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        await this.validateLocationCheckpoint(clockInDto.latitude, clockInDto.longitude);
         const activePeriod = await this.attendancePeriodService.getActivePeriod();
         const isWorkingDay = await this.attendancePeriodService.isWorkingDay(today, BigInt(activePeriod.id));
         if (!isWorkingDay) {
@@ -90,6 +114,7 @@ let AttendanceService = class AttendanceService {
     async clockOut(employeeId, clockOutDto, ipAddress, userAgent) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        await this.validateLocationCheckpoint(clockOutDto.latitude, clockOutDto.longitude);
         const activePeriod = await this.attendancePeriodService.getActivePeriod();
         const isWorkingDay = await this.attendancePeriodService.isWorkingDay(today, BigInt(activePeriod.id));
         if (!isWorkingDay) {
@@ -456,6 +481,7 @@ exports.AttendanceService = AttendanceService = __decorate([
     __metadata("design:paramtypes", [attendance_repository_1.AttendanceRepository,
         attendance_period_service_1.AttendancePeriodService,
         notification_service_1.NotificationService,
-        notification_gateway_1.NotificationGateway])
+        notification_gateway_1.NotificationGateway,
+        settings_service_1.SettingsService])
 ], AttendanceService);
 //# sourceMappingURL=attendance.service.js.map
