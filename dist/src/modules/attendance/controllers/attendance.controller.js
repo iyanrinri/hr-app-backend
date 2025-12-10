@@ -255,7 +255,7 @@ __decorate([
 ], AttendanceController.prototype, "getDashboardToday", null);
 exports.AttendanceController = AttendanceController = __decorate([
     (0, swagger_1.ApiTags)('attendance'),
-    (0, swagger_1.ApiSecurity)('JWT-auth'),
+    (0, swagger_1.ApiBearerAuth)('bearer'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('attendance'),
     __metadata("design:paramtypes", [attendance_service_1.AttendanceService,

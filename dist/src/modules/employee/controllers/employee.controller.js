@@ -322,7 +322,7 @@ exports.EmployeeController = EmployeeController = __decorate([
     (0, common_1.Controller)('employees'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR),
-    (0, swagger_1.ApiSecurity)('JWT-auth'),
+    (0, swagger_1.ApiBearerAuth)('bearer'),
     __metadata("design:paramtypes", [employee_service_1.EmployeeService])
 ], EmployeeController);
 //# sourceMappingURL=employee.controller.js.map

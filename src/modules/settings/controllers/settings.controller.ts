@@ -15,7 +15,7 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiSecurity,
+  ApiBearerAuth,
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
@@ -27,7 +27,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Role } from '@prisma/client';
 
 @ApiTags('settings')
-@ApiSecurity('JWT-auth')
+@ApiBearerAuth('bearer')
 @UseGuards(JwtAuthGuard)
 @Controller('settings')
 export class SettingsController {

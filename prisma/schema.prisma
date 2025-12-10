@@ -41,6 +41,8 @@ model Employee {
   payrolls       Payroll[]
   manager        Employee?       @relation("EmployeeHierarchy", fields: [managerId], references: [id])
   subordinates   Employee[]      @relation("EmployeeHierarchy")
+  leaveBalances  LeaveBalance[]
+  leaveApprovals LeaveApproval[] @relation("LeaveApprovals")
 
   @@map("employees")
 }
@@ -123,21 +125,6 @@ model Holiday {
   @@map("holidays")
 }
 
-model LeaveRequest {
-  id         BigInt      @id @default(autoincrement())
-  employeeId BigInt
-  startDate  DateTime
-  endDate    DateTime
-  reason     String
-  status     LeaveStatus @default(PENDING)
-  approvedBy BigInt?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  employee   Employee    @relation(fields: [employeeId], references: [id])
-
-  @@map("leave_requests")
-}
-
 model Payroll {
   id          BigInt   @id @default(autoincrement())
   employeeId  BigInt
@@ -190,12 +177,6 @@ enum AttendanceType {
   CLOCK_OUT
 }
 
-enum LeaveStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
 enum SettingDataType {
   STRING
   INTEGER
@@ -219,4 +200,140 @@ enum SettingCategory {
   NOTIFICATION
   SECURITY
   INTEGRATION
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  MATERNITY
+  PATERNITY
+  HAJJ_UMRAH
+  EMERGENCY
+  COMPASSIONATE
+  STUDY
+  UNPAID
+}
+
+enum LeaveRequestStatus {
+  PENDING
+  MANAGER_APPROVED
+  HR_APPROVED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model LeavePeriod {
+  id          BigInt    @id @default(autoincrement())
+  name        String
+  startDate   DateTime  @db.Date
+  endDate     DateTime  @db.Date
+  isActive    Boolean   @default(true)
+  description String?
+  createdBy   BigInt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  leaveTypes  LeaveTypeConfig[]
+  leaveBalances LeaveBalance[]
+  leaveRequests LeaveRequest[]
+  
+  @@map("leave_periods")
+}
+
+model LeaveTypeConfig {
+  id              BigInt      @id @default(autoincrement())
+  leavePeriodId   BigInt
+  type            LeaveType
+  name            String
+  description     String?
+  defaultQuota    Int         @default(0)
+  maxConsecutiveDays Int?
+  advanceNoticeDays  Int      @default(0)
+  isCarryForward  Boolean     @default(false)
+  maxCarryForward Int?
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  leavePeriod     LeavePeriod @relation(fields: [leavePeriodId], references: [id])
+  leaveBalances   LeaveBalance[]
+  leaveRequests   LeaveRequest[]
+  
+  @@unique([leavePeriodId, type])
+  @@map("leave_type_configs")
+}
+
+model LeaveBalance {
+  id                BigInt          @id @default(autoincrement())
+  employeeId        BigInt
+  leavePeriodId     BigInt
+  leaveTypeConfigId BigInt
+  totalQuota        Int             @default(0)
+  usedQuota         Int             @default(0)
+  pendingQuota      Int             @default(0)
+  carriedForward    Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  employee          Employee        @relation(fields: [employeeId], references: [id])
+  leavePeriod       LeavePeriod     @relation(fields: [leavePeriodId], references: [id])
+  leaveTypeConfig   LeaveTypeConfig @relation(fields: [leaveTypeConfigId], references: [id])
+  
+  @@unique([employeeId, leavePeriodId, leaveTypeConfigId])
+  @@map("leave_balances")
+}
+
+model LeaveRequest {
+  id                BigInt            @id @default(autoincrement())
+  employeeId        BigInt
+  leavePeriodId     BigInt
+  leaveTypeConfigId BigInt
+  startDate         DateTime          @db.Date
+  endDate           DateTime          @db.Date
+  totalDays         Int
+  reason            String
+  status            LeaveRequestStatus @default(PENDING)
+  managerComments   String?
+  hrComments        String?
+  rejectionReason   String?
+  emergencyContact  String?
+  handoverNotes     String?
+  submittedAt       DateTime          @default(now())
+  managerApprovedAt DateTime?
+  hrApprovedAt      DateTime?
+  finalizedAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  employee          Employee          @relation(fields: [employeeId], references: [id])
+  leavePeriod       LeavePeriod       @relation(fields: [leavePeriodId], references: [id])
+  leaveTypeConfig   LeaveTypeConfig   @relation(fields: [leaveTypeConfigId], references: [id])
+  approvals         LeaveApproval[]
+  
+  @@map("leave_requests")
+}
+
+model LeaveApproval {
+  id            BigInt         @id @default(autoincrement())
+  leaveRequestId BigInt
+  approverId    BigInt
+  approverType  String         // 'MANAGER' | 'HR'
+  status        ApprovalStatus @default(PENDING)
+  comments      String?
+  approvedAt    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  leaveRequest  LeaveRequest   @relation(fields: [leaveRequestId], references: [id])
+  approver      Employee       @relation("LeaveApprovals", fields: [approverId], references: [id])
+  
+  @@unique([leaveRequestId, approverId, approverType])
+  @@map("leave_approvals")
 }

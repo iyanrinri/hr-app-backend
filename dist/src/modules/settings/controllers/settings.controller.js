@@ -249,7 +249,7 @@ __decorate([
 ], SettingsController.prototype, "initializeDefaults", null);
 exports.SettingsController = SettingsController = __decorate([
     (0, swagger_1.ApiTags)('settings'),
-    (0, swagger_1.ApiSecurity)('JWT-auth'),
+    (0, swagger_1.ApiBearerAuth)('bearer'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('settings'),
     __metadata("design:paramtypes", [settings_service_1.SettingsService])

@@ -1,5 +1,5 @@
 import { Controller, Post, Get, Body, Query, Request, UseGuards, HttpCode, HttpStatus, Ip, Headers, ForbiddenException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiSecurity, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AttendanceService } from '../services/attendance.service';
 import { EmployeeService } from '../../employee/services/employee.service';
 import { ClockInDto } from '../dto/clock-in.dto';
@@ -9,7 +9,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Role } from '@prisma/client';
 
 @ApiTags('attendance')
-@ApiSecurity('JWT-auth')
+@ApiBearerAuth('bearer')
 @UseGuards(JwtAuthGuard)
 @Controller('attendance')
 export class AttendanceController {

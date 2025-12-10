@@ -37,7 +37,7 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  @ApiSecurity('JWT-auth')
+  @ApiBearerAuth('bearer')
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ 
     status: 200, 

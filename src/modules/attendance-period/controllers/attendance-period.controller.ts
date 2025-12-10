@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, Request } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiParam, ApiSecurity } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
 import { AttendancePeriodService } from '../services/attendance-period.service';
 import { AttendancePeriodScheduler } from '../services/attendance-period.scheduler';
 import { CreateAttendancePeriodDto } from '../dto/create-attendance-period.dto';
@@ -17,7 +17,7 @@ import { Role } from '@prisma/client';
 @Controller('attendance-periods')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.SUPER, Role.HR)
-@ApiSecurity('JWT-auth')
+@ApiBearerAuth('bearer')
 export class AttendancePeriodController {
   constructor(
     private readonly attendancePeriodService: AttendancePeriodService,
