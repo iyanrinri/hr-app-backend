@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { AttendancePeriodModule } from './modules/attendance-period/attendance-period.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
+import { SettingsModule } from './modules/settings/settings.module';
 import { NotificationModule } from './common/modules/notification.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -22,6 +23,7 @@ import { AppService } from './app.service';
     RolesModule,
     AttendancePeriodModule,
     AttendanceModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -16,6 +16,7 @@ const auth_module_1 = require("./modules/auth/auth.module");
 const roles_module_1 = require("./modules/roles/roles.module");
 const attendance_period_module_1 = require("./modules/attendance-period/attendance-period.module");
 const attendance_module_1 = require("./modules/attendance/attendance.module");
+const settings_module_1 = require("./modules/settings/settings.module");
 const notification_module_1 = require("./common/modules/notification.module");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
@@ -34,6 +35,7 @@ exports.AppModule = AppModule = __decorate([
             roles_module_1.RolesModule,
             attendance_period_module_1.AttendancePeriodModule,
             attendance_module_1.AttendanceModule,
+            settings_module_1.SettingsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

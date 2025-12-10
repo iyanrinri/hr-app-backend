@@ -152,6 +152,22 @@ model Payroll {
   @@map("payrolls")
 }
 
+model Setting {
+  id          BigInt         @id @default(autoincrement())
+  key         String         @unique
+  value       String
+  dataType    SettingDataType @default(STRING)
+  category    SettingCategory @default(GENERAL)
+  isPublic    Boolean        @default(false)
+  description String?
+  createdBy   BigInt
+  updatedBy   BigInt
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("settings")
+}
+
 enum Role {
   SUPER
   HR
@@ -175,4 +191,29 @@ enum LeaveStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum SettingDataType {
+  STRING
+  INTEGER
+  DECIMAL
+  BOOLEAN
+  JSON
+  EMAIL
+  URL
+  DATE
+  DATETIME
+  TIME
+  PASSWORD
+}
+
+enum SettingCategory {
+  GENERAL
+  COMPANY
+  ATTENDANCE
+  LEAVE
+  PAYROLL
+  NOTIFICATION
+  SECURITY
+  INTEGRATION
 }
