@@ -9,6 +9,9 @@ import { AttendancePeriodModule } from './modules/attendance-period/attendance-p
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { LeaveModule } from './modules/leave/leave.module';
+import { SalaryModule } from './modules/salary/salary.module';
+import { OvertimeModule } from './modules/overtime/overtime.module';
+import { PayrollModule } from './modules/payroll/payroll.module';
 import { NotificationModule } from './common/modules/notification.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -26,6 +29,9 @@ import { AppService } from './app.service';
     AttendanceModule,
     SettingsModule,
     LeaveModule,
+    SalaryModule,
+    OvertimeModule,
+    PayrollModule,
   ],
   controllers: [AppController],
   providers: [AppService],

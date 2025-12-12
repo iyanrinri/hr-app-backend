@@ -20,8 +20,10 @@ class CreateEmployeeDto {
     position;
     department;
     joinDate;
-    baseSalary;
     managerId;
+    initialSalary;
+    initialAllowances;
+    initialGrade;
 }
 exports.CreateEmployeeDto = CreateEmployeeDto;
 __decorate([
@@ -68,12 +70,6 @@ __decorate([
     __metadata("design:type", String)
 ], CreateEmployeeDto.prototype, "joinDate", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 5000 }),
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Number)
-], CreateEmployeeDto.prototype, "baseSalary", void 0);
-__decorate([
     (0, swagger_1.ApiProperty)({
         example: 456,
         description: 'Manager Employee ID (optional)',
@@ -83,4 +79,34 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateEmployeeDto.prototype, "managerId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: 5000000,
+        description: 'Initial base salary (will create salary record)',
+        required: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateEmployeeDto.prototype, "initialSalary", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: 500000,
+        description: 'Initial allowances (optional)',
+        required: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateEmployeeDto.prototype, "initialAllowances", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        example: 'Grade 5',
+        description: 'Initial salary grade (optional)',
+        required: false
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateEmployeeDto.prototype, "initialGrade", void 0);
 //# sourceMappingURL=create-employee.dto.js.map

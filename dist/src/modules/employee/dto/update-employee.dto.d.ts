@@ -5,6 +5,6 @@ export declare class UpdateEmployeeDto {
     lastName?: string;
     position?: string;
     department?: string;
-    baseSalary?: number;
+    joinDate?: string;
     managerId?: number;
 }

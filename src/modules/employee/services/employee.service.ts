@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, ForbiddenException, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { EmployeeRepository } from '../repositories/employee.repository';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { UpdateEmployeeDto } from '../dto/update-employee.dto';
@@ -6,6 +6,7 @@ import { FindAllEmployeesDto } from '../dto/find-all-employees.dto';
 import { AssignSubordinatesDto, SetManagerDto, EmployeeHierarchyResponseDto, OrganizationTreeDto } from '../dto/employee-hierarchy.dto';
 import { Prisma, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { SalaryService } from '../../salary/services/salary.service';
 
 function parsePrismaError(error: any): { message: string; code: number } | null {
   const cause = error.meta?.driverAdapterError?.cause;
@@ -25,10 +26,14 @@ function parsePrismaError(error: any): { message: string; code: number } | null 
 
 @Injectable()
 export class EmployeeService {
-  constructor(private repository: EmployeeRepository) {}
+  constructor(
+    private repository: EmployeeRepository,
+    @Inject(forwardRef(() => SalaryService))
+    private salaryService: SalaryService,
+  ) {}
 
-  async create(createEmployeeDto: CreateEmployeeDto) {
-    const { email, password, managerId, ...employeeData } = createEmployeeDto;
+  async create(createEmployeeDto: CreateEmployeeDto, createdBy: string) {
+    const { email, password, managerId, initialSalary, initialAllowances, initialGrade, ...employeeData } = createEmployeeDto;
 
     // Hash the password from request body
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -60,7 +65,29 @@ export class EmployeeService {
         };
       }
 
-      return await this.repository.create(createData);
+      const employee = await this.repository.create(createData);
+
+      // Create initial salary record if provided
+      if (initialSalary && initialSalary > 0) {
+        try {
+          await this.salaryService.create({
+            employeeId: Number(employee.id),
+            baseSalary: initialSalary,
+            allowances: initialAllowances || 0,
+            grade: initialGrade,
+            effectiveDate: createEmployeeDto.joinDate,
+            isActive: true,
+            notes: 'Initial salary setup during employee creation',
+            createdBy: parseInt(createdBy),
+          });
+        } catch (error) {
+          console.error('Failed to create initial salary record:', error);
+          // Continue without failing employee creation
+          // Salary can be added later via salary endpoint
+        }
+      }
+
+      return employee;
     } catch (error) {
       const meta = parsePrismaError(error);
       if (meta?.code === 409) {
@@ -224,7 +251,7 @@ export class EmployeeService {
     if (employeeData.lastName !== undefined) updateData.lastName = employeeData.lastName;
     if (employeeData.position !== undefined) updateData.position = employeeData.position;
     if (employeeData.department !== undefined) updateData.department = employeeData.department;
-    if (employeeData.baseSalary !== undefined) updateData.baseSalary = employeeData.baseSalary;
+    if (employeeData.firstName !== undefined) updateData.firstName = employeeData.firstName;
 
     // Prepare user update data if email or password is provided
     let userUpdateData: any = {};
@@ -333,6 +360,16 @@ export class EmployeeService {
     }
 
     const subordinateIds = assignDto.subordinateIds.map(id => BigInt(id));
+
+    // If empty array, remove all subordinates from this manager
+    if (subordinateIds.length === 0) {
+      await this.repository.removeAllSubordinates(managerId);
+      return {
+        message: 'All subordinates removed successfully',
+        managerId: Number(managerId),
+        assignedSubordinates: []
+      };
+    }
 
     // Verify all subordinates exist
     const subordinates = await this.repository.findByIds(subordinateIds);

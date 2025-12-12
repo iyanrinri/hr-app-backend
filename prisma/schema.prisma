@@ -7,15 +7,16 @@ datasource db {
 }
 
 model User {
-  id        BigInt    @id @default(autoincrement())
-  email     String    @unique
-  password  String
-  role      Role      @default(EMPLOYEE)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  employee  Employee?
+  id                BigInt    @id @default(autoincrement())
+  email             String    @unique
+  password          String
+  role              Role      @default(EMPLOYEE)
+  isDeleted         Boolean   @default(false)
+  deletedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  employee          Employee?
+  processedPayrolls Payroll[]
 
   @@map("users")
 }
@@ -28,7 +29,6 @@ model Employee {
   position       String
   department     String
   joinDate       DateTime
-  baseSalary     Decimal
   managerId      BigInt?
   isDeleted      Boolean         @default(false)
   deletedAt      DateTime?
@@ -43,6 +43,10 @@ model Employee {
   subordinates   Employee[]      @relation("EmployeeHierarchy")
   leaveBalances  LeaveBalance[]
   leaveApprovals LeaveApproval[] @relation("LeaveApprovals")
+  salaries       Salary[]
+  salaryHistories SalaryHistory[]
+  overtimeRequests OvertimeRequest[]
+  overtimeApprovals OvertimeApproval[] @relation("OvertimeApprovals")
 
   @@map("employees")
 }
@@ -63,6 +67,7 @@ model Attendance {
   updatedAt          DateTime         @updatedAt
   attendancePeriod   AttendancePeriod @relation(fields: [attendancePeriodId], references: [id])
   employee           Employee         @relation(fields: [employeeId], references: [id])
+  overtimeRequests   OvertimeRequest[]
 
   @@unique([employeeId, date])
   @@map("attendances")
@@ -126,18 +131,25 @@ model Holiday {
 }
 
 model Payroll {
-  id          BigInt   @id @default(autoincrement())
-  employeeId  BigInt
-  periodStart DateTime
-  periodEnd   DateTime
-  baseSalary  Decimal
-  deductions  Decimal  @default(0)
-  bonuses     Decimal  @default(0)
-  netSalary   Decimal
-  isPaid      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  employee    Employee @relation(fields: [employeeId], references: [id])
+  id                BigInt   @id @default(autoincrement())
+  employeeId        BigInt
+  periodStart       DateTime
+  periodEnd         DateTime
+  baseSalary        Decimal
+  overtimePay       Decimal  @default(0)
+  deductions        Decimal  @default(0)
+  bonuses           Decimal  @default(0)
+  grossSalary       Decimal
+  netSalary         Decimal
+  overtimeHours     Decimal  @default(0)
+  regularHours      Decimal  @default(0)
+  isPaid            Boolean  @default(false)
+  processedAt       DateTime?
+  processedBy       BigInt?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  employee          Employee @relation(fields: [employeeId], references: [id])
+  processor         User?    @relation(fields: [processedBy], references: [id])
 
   @@map("payrolls")
 }
@@ -227,6 +239,26 @@ enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum SalaryChangeType {
+  INITIAL
+  PROMOTION
+  GRADE_ADJUSTMENT
+  PERFORMANCE_INCREASE
+  MARKET_ADJUSTMENT
+  DEPARTMENT_TRANSFER
+  POSITION_CHANGE
+  ANNUAL_INCREMENT
+}
+
+enum OvertimeStatus {
+  PENDING
+  MANAGER_APPROVED
+  HR_APPROVED
+  APPROVED
+  REJECTED
+  CANCELLED
 }
 
 model LeavePeriod {
@@ -336,4 +368,92 @@ model LeaveApproval {
   
   @@unique([leaveRequestId, approverId, approverType])
   @@map("leave_approvals")
+}
+
+model Salary {
+  id          BigInt    @id @default(autoincrement())
+  employeeId  BigInt
+  baseSalary  Decimal
+  allowances  Decimal   @default(0)
+  grade       String?
+  effectiveDate DateTime @db.Date
+  endDate     DateTime? @db.Date
+  isActive    Boolean   @default(true)
+  notes       String?
+  createdBy   BigInt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  
+  @@map("salaries")
+}
+
+model SalaryHistory {
+  id            BigInt    @id @default(autoincrement())
+  employeeId    BigInt
+  changeType    SalaryChangeType
+  oldBaseSalary Decimal?
+  newBaseSalary Decimal
+  oldGrade      String?
+  newGrade      String?
+  oldPosition   String?
+  newPosition   String?
+  oldDepartment String?
+  newDepartment String?
+  reason        String
+  effectiveDate DateTime  @db.Date
+  approvedBy    BigInt?
+  createdAt     DateTime  @default(now())
+  
+  employee      Employee  @relation(fields: [employeeId], references: [id])
+  
+  @@map("salary_histories")
+}
+
+model OvertimeRequest {
+  id                BigInt              @id @default(autoincrement())
+  employeeId        BigInt
+  attendanceId      BigInt?
+  date              DateTime            @db.Date
+  startTime         DateTime
+  endTime           DateTime
+  totalMinutes      Int
+  reason            String
+  status            OvertimeStatus      @default(PENDING)
+  overtimeRate      Decimal?
+  calculatedAmount  Decimal?
+  managerComments   String?
+  hrComments        String?
+  rejectionReason   String?
+  submittedAt       DateTime            @default(now())
+  managerApprovedAt DateTime?
+  hrApprovedAt      DateTime?
+  finalizedAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  employee          Employee            @relation(fields: [employeeId], references: [id])
+  attendance        Attendance?         @relation(fields: [attendanceId], references: [id])
+  approvals         OvertimeApproval[]
+  
+  @@map("overtime_requests")
+}
+
+model OvertimeApproval {
+  id               BigInt         @id @default(autoincrement())
+  overtimeRequestId BigInt
+  approverId       BigInt
+  approverType     String         // 'MANAGER' | 'HR'
+  status           ApprovalStatus @default(PENDING)
+  comments         String?
+  approvedAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  
+  overtimeRequest  OvertimeRequest @relation(fields: [overtimeRequestId], references: [id])
+  approver         Employee        @relation("OvertimeApprovals", fields: [approverId], references: [id])
+  
+  @@unique([overtimeRequestId, approverId, approverType])
+  @@map("overtime_approvals")
 }

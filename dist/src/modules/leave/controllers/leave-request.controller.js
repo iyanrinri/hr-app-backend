@@ -146,8 +146,11 @@ __decorate([
 ], LeaveRequestController.prototype, "cancelLeaveRequest", null);
 __decorate([
     (0, common_1.Get)('pending/for-approval'),
-    (0, roles_decorator_1.Roles)(client_1.Role.HR, client_1.Role.SUPER),
-    (0, swagger_1.ApiOperation)({ summary: 'Get leave requests pending for approval (HR/Manager only)' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.HR, client_1.Role.SUPER, client_1.Role.MANAGER, client_1.Role.EMPLOYEE),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get leave requests pending for approval',
+        description: 'Manager/Employee with subordinates: See PENDING requests from subordinates. HR/SUPER: See MANAGER_APPROVED requests waiting for final approval.'
+    }),
     (0, swagger_1.ApiQuery)({ name: 'department', required: false, description: 'Filter by department' }),
     (0, swagger_1.ApiQuery)({ name: 'page', required: false, example: 1 }),
     (0, swagger_1.ApiQuery)({ name: 'limit', required: false, example: 10 }),
@@ -166,9 +169,12 @@ __decorate([
 ], LeaveRequestController.prototype, "getPendingApprovals", null);
 __decorate([
     (0, common_1.Patch)(':id/approve'),
-    (0, roles_decorator_1.Roles)(client_1.Role.HR, client_1.Role.SUPER),
+    (0, roles_decorator_1.Roles)(client_1.Role.HR, client_1.Role.SUPER, client_1.Role.MANAGER, client_1.Role.EMPLOYEE),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, swagger_1.ApiOperation)({ summary: 'Approve a leave request (HR/Manager only)' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Approve a leave request',
+        description: 'Two-level approval: 1) Manager approves PENDING→MANAGER_APPROVED, 2) HR approves MANAGER_APPROVED→APPROVED'
+    }),
     (0, swagger_1.ApiParam)({ name: 'id', type: 'number', description: 'Leave request ID' }),
     (0, swagger_1.ApiBody)({ type: leave_request_dto_1.ApproveLeaveRequestDto }),
     (0, swagger_1.ApiResponse)({
@@ -185,9 +191,9 @@ __decorate([
 ], LeaveRequestController.prototype, "approveLeaveRequest", null);
 __decorate([
     (0, common_1.Patch)(':id/reject'),
-    (0, roles_decorator_1.Roles)(client_1.Role.HR, client_1.Role.SUPER),
+    (0, roles_decorator_1.Roles)(client_1.Role.HR, client_1.Role.SUPER, client_1.Role.MANAGER, client_1.Role.EMPLOYEE),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, swagger_1.ApiOperation)({ summary: 'Reject a leave request (HR/Manager only)' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Reject a leave request (HR/Manager/Employee with subordinates only)' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: 'number', description: 'Leave request ID' }),
     (0, swagger_1.ApiBody)({ type: leave_request_dto_1.RejectLeaveRequestDto }),
     (0, swagger_1.ApiResponse)({

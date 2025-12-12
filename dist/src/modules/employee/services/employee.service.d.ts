@@ -3,11 +3,13 @@ import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { UpdateEmployeeDto } from '../dto/update-employee.dto';
 import { FindAllEmployeesDto } from '../dto/find-all-employees.dto';
 import { AssignSubordinatesDto, SetManagerDto, EmployeeHierarchyResponseDto, OrganizationTreeDto } from '../dto/employee-hierarchy.dto';
-import { Prisma, Role } from '@prisma/client';
+import { Role } from '@prisma/client';
+import { SalaryService } from '../../salary/services/salary.service';
 export declare class EmployeeService {
     private repository;
-    constructor(repository: EmployeeRepository);
-    create(createEmployeeDto: CreateEmployeeDto): Promise<{
+    private salaryService;
+    constructor(repository: EmployeeRepository, salaryService: SalaryService);
+    create(createEmployeeDto: CreateEmployeeDto, createdBy: string): Promise<{
         id: bigint;
         isDeleted: boolean;
         deletedAt: Date | null;
@@ -18,7 +20,6 @@ export declare class EmployeeService {
         position: string;
         department: string;
         joinDate: Date;
-        baseSalary: Prisma.Decimal;
         managerId: bigint | null;
         userId: bigint;
     }>;
@@ -46,7 +47,6 @@ export declare class EmployeeService {
         position: string;
         department: string;
         joinDate: Date;
-        baseSalary: Prisma.Decimal;
         managerId: bigint | null;
         userId: bigint;
     }>;
@@ -61,7 +61,6 @@ export declare class EmployeeService {
         position: string;
         department: string;
         joinDate: Date;
-        baseSalary: Prisma.Decimal;
         managerId: bigint | null;
         userId: bigint;
     }>;
@@ -77,7 +76,6 @@ export declare class EmployeeService {
         position: string;
         department: string;
         joinDate: Date;
-        baseSalary: Prisma.Decimal;
         managerId: bigint | null;
         userId: bigint;
     }>;

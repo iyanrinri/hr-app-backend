@@ -178,6 +178,15 @@ export class SettingsService {
       autoClockOutTime: '18:00',
       overtimeEnabled: false,
       overtimeMinThreshold: 60,
+      overtimeMaxHoursPerDay: 4,
+      overtimeMaxHoursPerWeek: 20,
+      overtimeMaxHoursPerMonth: 80,
+      overtimeWeekdayRate: 1.5,
+      overtimeWeekendRate: 2.0,
+      overtimeHolidayRate: 3.0,
+      overtimeRequiresApproval: true,
+      overtimeManagerApprovalRequired: true,
+      overtimeHrApprovalRequired: true,
     };
 
     attendanceSettings.forEach(setting => {
@@ -221,10 +230,55 @@ export class SettingsService {
         case 'attendance_overtime_threshold':
           settings.overtimeMinThreshold = parsed;
           break;
+        case 'overtime_max_hours_per_day':
+          settings.overtimeMaxHoursPerDay = parsed;
+          break;
+        case 'overtime_max_hours_per_week':
+          settings.overtimeMaxHoursPerWeek = parsed;
+          break;
+        case 'overtime_max_hours_per_month':
+          settings.overtimeMaxHoursPerMonth = parsed;
+          break;
+        case 'overtime_weekday_rate':
+          settings.overtimeWeekdayRate = parsed;
+          break;
+        case 'overtime_weekend_rate':
+          settings.overtimeWeekendRate = parsed;
+          break;
+        case 'overtime_holiday_rate':
+          settings.overtimeHolidayRate = parsed;
+          break;
+        case 'overtime_requires_approval':
+          settings.overtimeRequiresApproval = parsed;
+          break;
+        case 'overtime_manager_approval_required':
+          settings.overtimeManagerApprovalRequired = parsed;
+          break;
+        case 'overtime_hr_approval_required':
+          settings.overtimeHrApprovalRequired = parsed;
+          break;
       }
     });
 
     return settings;
+  }
+
+  async getOvertimeSettings() {
+    // Temporary implementation - returns default values
+    // TODO: Implement proper settings retrieval when PAYROLL category is added to schema
+    return {
+      enabled: false,
+      minThresholdMinutes: 60,
+      maxHoursPerDay: 4,
+      maxHoursPerWeek: 20,
+      maxHoursPerMonth: 80,
+      weekdayRate: 1.5,
+      weekendRate: 2.0,
+      holidayRate: 3.0,
+      requiresApproval: true,
+      managerApprovalRequired: true,
+      hrApprovalRequired: true,
+    };
   }
 
   // Initialize default settings
@@ -254,6 +308,12 @@ export class SettingsService {
       { key: 'attendance_checkpoint_address', value: '', category: SettingCategory.ATTENDANCE, description: 'Check point address', dataType: SettingDataType.STRING, isPublic: false },
       { key: 'attendance_late_tolerance', value: '15', category: SettingCategory.ATTENDANCE, description: 'Late tolerance in minutes', dataType: SettingDataType.INTEGER, isPublic: false },
       { key: 'attendance_early_leave_tolerance', value: '15', category: SettingCategory.ATTENDANCE, description: 'Early leave tolerance in minutes', dataType: SettingDataType.INTEGER, isPublic: false },
+      { key: 'attendance_overtime_enabled', value: 'false', category: SettingCategory.ATTENDANCE, description: 'Enable overtime tracking', dataType: SettingDataType.BOOLEAN, isPublic: false },
+      { key: 'attendance_overtime_threshold', value: '60', category: SettingCategory.ATTENDANCE, description: 'Overtime threshold in minutes', dataType: SettingDataType.INTEGER, isPublic: false },
+
+      // Overtime rate and limit settings
+      // TODO: Add overtime settings when PAYROLL category is available
+      // { key: 'overtime_max_hours_per_day', value: '4', category: SettingCategory.ATTENDANCE, description: 'Maximum overtime hours per day', dataType: SettingDataType.INTEGER, isPublic: false },
 
       // Notification settings
       { key: 'notification_email_enabled', value: 'false', category: SettingCategory.NOTIFICATION, description: 'Enable email notifications', dataType: SettingDataType.BOOLEAN, isPublic: false },

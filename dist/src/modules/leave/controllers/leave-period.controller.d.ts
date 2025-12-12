@@ -9,10 +9,10 @@ export declare class LeavePeriodController {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
         isActive: boolean;
         createdBy: bigint;
+        startDate: Date;
     }>;
     getAvailableLeaveTypes(): Promise<{
         data: string[];

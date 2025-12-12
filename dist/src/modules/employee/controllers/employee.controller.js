@@ -29,8 +29,8 @@ let EmployeeController = class EmployeeController {
     constructor(employeeService) {
         this.employeeService = employeeService;
     }
-    create(createEmployeeDto) {
-        return this.employeeService.create(createEmployeeDto);
+    create(createEmployeeDto, req) {
+        return this.employeeService.create(createEmployeeDto, req.user.sub);
     }
     findAll(query, req) {
         return this.employeeService.findAll(query, req.user.role);
@@ -106,8 +106,9 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized.' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden - SUPER or HR role required.' }),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_employee_dto_1.CreateEmployeeDto]),
+    __metadata("design:paramtypes", [create_employee_dto_1.CreateEmployeeDto, Object]),
     __metadata("design:returntype", void 0)
 ], EmployeeController.prototype, "create", null);
 __decorate([

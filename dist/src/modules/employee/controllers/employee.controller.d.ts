@@ -6,7 +6,7 @@ import { AssignSubordinatesDto, SetManagerDto, OrganizationTreeDto, EmployeeHier
 export declare class EmployeeController {
     private readonly employeeService;
     constructor(employeeService: EmployeeService);
-    create(createEmployeeDto: CreateEmployeeDto): Promise<{
+    create(createEmployeeDto: CreateEmployeeDto, req: any): Promise<{
         id: bigint;
         isDeleted: boolean;
         deletedAt: Date | null;
@@ -17,7 +17,6 @@ export declare class EmployeeController {
         position: string;
         department: string;
         joinDate: Date;
-        baseSalary: import("@prisma/client-runtime-utils").Decimal;
         managerId: bigint | null;
         userId: bigint;
     }>;
@@ -44,7 +43,6 @@ export declare class EmployeeController {
         position: string;
         department: string;
         joinDate: Date;
-        baseSalary: import("@prisma/client-runtime-utils").Decimal;
         managerId: bigint | null;
         userId: bigint;
     }>;
@@ -59,7 +57,6 @@ export declare class EmployeeController {
         position: string;
         department: string;
         joinDate: Date;
-        baseSalary: import("@prisma/client-runtime-utils").Decimal;
         managerId: bigint | null;
         userId: bigint;
     }>;

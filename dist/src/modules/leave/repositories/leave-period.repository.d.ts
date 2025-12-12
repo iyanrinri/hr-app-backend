@@ -9,10 +9,10 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
         isActive: boolean;
         createdBy: bigint;
+        startDate: Date;
     }>;
     findAll(params?: {
         skip?: number;
@@ -45,10 +45,10 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
         isActive: boolean;
         createdBy: bigint;
+        startDate: Date;
     })[]>;
     findById(id: bigint): Promise<({
         leaveBalances: ({
@@ -91,10 +91,10 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
         isActive: boolean;
         createdBy: bigint;
+        startDate: Date;
     }) | null>;
     findActive(): Promise<({
         leaveTypes: {
@@ -118,10 +118,10 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
         isActive: boolean;
         createdBy: bigint;
+        startDate: Date;
     }) | null>;
     update(id: bigint, data: Prisma.LeavePeriodUpdateInput): Promise<{
         id: bigint;
@@ -129,10 +129,10 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
         isActive: boolean;
         createdBy: bigint;
+        startDate: Date;
     }>;
     delete(id: bigint): Promise<{
         id: bigint;
@@ -140,10 +140,10 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
         isActive: boolean;
         createdBy: bigint;
+        startDate: Date;
     }>;
     count(where?: Prisma.LeavePeriodWhereInput): Promise<number>;
 }

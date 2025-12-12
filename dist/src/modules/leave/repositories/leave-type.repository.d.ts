@@ -74,10 +74,10 @@ export declare class LeaveTypeRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            startDate: Date;
             endDate: Date;
             isActive: boolean;
             createdBy: bigint;
+            startDate: Date;
         };
     } & {
         id: bigint;

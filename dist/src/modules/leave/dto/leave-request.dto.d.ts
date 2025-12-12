@@ -28,6 +28,11 @@ export declare class LeaveRequestResponseDto {
     hrComments?: string;
     emergencyContact?: string;
     handoverNotes?: string;
+    requiresManagerApproval?: boolean;
+    managerApprovalStatus?: string;
+    managerApprovedAt?: string;
+    hrApprovalStatus?: string;
+    hrApprovedAt?: string;
 }
 export declare class LeaveBalanceResponseDto {
     id: string;
@@ -59,4 +64,9 @@ export declare class LeaveRequestHistoryDto {
     approvedAt?: string;
     approvedBy?: string;
     approverComments?: string;
+    requiresManagerApproval?: boolean;
+    managerApprovalStatus?: string;
+    managerApprovedAt?: string;
+    hrApprovalStatus?: string;
+    hrApprovedAt?: string;
 }

@@ -210,6 +210,12 @@ let EmployeeRepository = class EmployeeRepository {
             data: { managerId }
         });
     }
+    async removeAllSubordinates(managerId) {
+        await this.prisma.employee.updateMany({
+            where: { managerId: managerId },
+            data: { managerId: null }
+        });
+    }
 };
 exports.EmployeeRepository = EmployeeRepository;
 exports.EmployeeRepository = EmployeeRepository = __decorate([

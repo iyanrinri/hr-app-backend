@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../../database/prisma.service';
+import { EmployeeService } from '../../employee/services/employee.service';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +11,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private employeeService: EmployeeService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -34,6 +36,9 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Check if user has subordinates
+    const hasSubordinates = await this.checkHasSubordinates(user.id);
+
     const payload = { 
       sub: user.id.toString(), 
       email: user.email, 
@@ -46,6 +51,7 @@ export class AuthService {
         id: user.id.toString(),
         email: user.email,
         role: user.role,
+        hasSubordinates,
       },
     };
   }
@@ -76,6 +82,9 @@ export class AuthService {
       
       const { password: _, ...userWithoutPassword } = user;
       
+      // Check if user has subordinates
+      const hasSubordinates = await this.checkHasSubordinates(user.id);
+      
       const payload = { 
         sub: user.id.toString(), 
         email: user.email, 
@@ -88,6 +97,7 @@ export class AuthService {
           id: userWithoutPassword.id.toString(),
           email: userWithoutPassword.email,
           role: userWithoutPassword.role,
+          hasSubordinates,
         },
       };
     }
@@ -106,6 +116,9 @@ export class AuthService {
 
     const { password: _, ...userWithoutPassword } = user;
 
+    // Check if user has subordinates
+    const hasSubordinates = await this.checkHasSubordinates(user.id);
+
     const payload = { 
       sub: user.id.toString(), 
       email: user.email, 
@@ -118,6 +131,7 @@ export class AuthService {
         id: userWithoutPassword.id.toString(),
         email: userWithoutPassword.email,
         role: userWithoutPassword.role,
+        hasSubordinates,
       },
     };
   }
@@ -141,12 +155,33 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
+    // Check if user has subordinates
+    const hasSubordinates = await this.checkHasSubordinates(user.id);
+
     return {
       id: user.id.toString(),
       email: user.email,
       role: user.role,
+      hasSubordinates,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };
+  }
+
+  private async checkHasSubordinates(userId: bigint): Promise<boolean> {
+    try {
+      // Get employee record for this user
+      const employee = await this.employeeService.findByUserId(userId);
+      if (!employee) {
+        return false;
+      }
+
+      // Check if employee has subordinates
+      const subordinates = await this.employeeService.getAllSubordinates(employee.id);
+      return subordinates.length > 0;
+    } catch (error) {
+      // If any error occurs, return false
+      return false;
+    }
   }
 }

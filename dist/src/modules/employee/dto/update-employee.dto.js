@@ -19,7 +19,7 @@ class UpdateEmployeeDto {
     lastName;
     position;
     department;
-    baseSalary;
+    joinDate;
     managerId;
 }
 exports.UpdateEmployeeDto = UpdateEmployeeDto;
@@ -86,14 +86,14 @@ __decorate([
 ], UpdateEmployeeDto.prototype, "department", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
-        example: 85000,
-        description: 'Employee base salary',
+        example: '2024-01-01T00:00:00Z',
+        description: 'Employee join date',
         required: false
     }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
-    __metadata("design:type", Number)
-], UpdateEmployeeDto.prototype, "baseSalary", void 0);
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], UpdateEmployeeDto.prototype, "joinDate", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         example: 456,

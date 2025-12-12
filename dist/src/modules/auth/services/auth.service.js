@@ -46,13 +46,16 @@ exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const prisma_service_1 = require("../../../database/prisma.service");
+const employee_service_1 = require("../../employee/services/employee.service");
 const bcrypt = __importStar(require("bcrypt"));
 let AuthService = class AuthService {
     prisma;
     jwtService;
-    constructor(prisma, jwtService) {
+    employeeService;
+    constructor(prisma, jwtService, employeeService) {
         this.prisma = prisma;
         this.jwtService = jwtService;
+        this.employeeService = employeeService;
     }
     async validateUser(email, password) {
         const user = await this.prisma.user.findFirst({
@@ -72,6 +75,7 @@ let AuthService = class AuthService {
         if (!user) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
+        const hasSubordinates = await this.checkHasSubordinates(user.id);
         const payload = {
             sub: user.id.toString(),
             email: user.email,
@@ -83,6 +87,7 @@ let AuthService = class AuthService {
                 id: user.id.toString(),
                 email: user.email,
                 role: user.role,
+                hasSubordinates,
             },
         };
     }
@@ -105,6 +110,7 @@ let AuthService = class AuthService {
                 },
             });
             const { password: _, ...userWithoutPassword } = user;
+            const hasSubordinates = await this.checkHasSubordinates(user.id);
             const payload = {
                 sub: user.id.toString(),
                 email: user.email,
@@ -116,6 +122,7 @@ let AuthService = class AuthService {
                     id: userWithoutPassword.id.toString(),
                     email: userWithoutPassword.email,
                     role: userWithoutPassword.role,
+                    hasSubordinates,
                 },
             };
         }
@@ -128,6 +135,7 @@ let AuthService = class AuthService {
             },
         });
         const { password: _, ...userWithoutPassword } = user;
+        const hasSubordinates = await this.checkHasSubordinates(user.id);
         const payload = {
             sub: user.id.toString(),
             email: user.email,
@@ -139,6 +147,7 @@ let AuthService = class AuthService {
                 id: userWithoutPassword.id.toString(),
                 email: userWithoutPassword.email,
                 role: userWithoutPassword.role,
+                hasSubordinates,
             },
         };
     }
@@ -159,19 +168,35 @@ let AuthService = class AuthService {
         if (!user) {
             throw new common_1.UnauthorizedException('User not found');
         }
+        const hasSubordinates = await this.checkHasSubordinates(user.id);
         return {
             id: user.id.toString(),
             email: user.email,
             role: user.role,
+            hasSubordinates,
             createdAt: user.createdAt.toISOString(),
             updatedAt: user.updatedAt.toISOString(),
         };
+    }
+    async checkHasSubordinates(userId) {
+        try {
+            const employee = await this.employeeService.findByUserId(userId);
+            if (!employee) {
+                return false;
+            }
+            const subordinates = await this.employeeService.getAllSubordinates(employee.id);
+            return subordinates.length > 0;
+        }
+        catch (error) {
+            return false;
+        }
     }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        employee_service_1.EmployeeService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

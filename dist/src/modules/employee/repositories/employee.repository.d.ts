@@ -29,4 +29,5 @@ export declare class EmployeeRepository {
     findAllSubordinatesRecursive(managerId: bigint): Promise<Employee[]>;
     updateManager(employeeId: bigint, managerId: bigint | null): Promise<Employee>;
     updateManagerForEmployees(employeeIds: bigint[], managerId: bigint): Promise<void>;
+    removeAllSubordinates(managerId: bigint): Promise<void>;
 }

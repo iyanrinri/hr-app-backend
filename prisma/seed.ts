@@ -40,7 +40,6 @@ async function main() {
           position: 'Software Engineer',
           department: 'IT',
           joinDate: new Date('2023-01-01'),
-          baseSalary: 5000,
         },
       },
     },
@@ -67,7 +66,7 @@ async function main() {
           position: 'HR Manager',
           department: 'Human Resources',
           joinDate: new Date('2022-06-15'),
-          baseSalary: 6000,
+
         },
       },
     },

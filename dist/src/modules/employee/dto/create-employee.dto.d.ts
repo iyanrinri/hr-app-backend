@@ -6,6 +6,8 @@ export declare class CreateEmployeeDto {
     position: string;
     department: string;
     joinDate: string;
-    baseSalary: number;
     managerId?: number;
+    initialSalary?: number;
+    initialAllowances?: number;
+    initialGrade?: string;
 }

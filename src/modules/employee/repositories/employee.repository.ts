@@ -248,4 +248,11 @@ export class EmployeeRepository {
       data: { managerId }
     });
   }
+
+  async removeAllSubordinates(managerId: bigint): Promise<void> {
+    await this.prisma.employee.updateMany({
+      where: { managerId: managerId },
+      data: { managerId: null }
+    });
+  }
 }

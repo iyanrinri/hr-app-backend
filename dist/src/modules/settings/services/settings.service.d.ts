@@ -102,6 +102,19 @@ export declare class SettingsService {
     } | null)[]>;
     getCompanyInfo(): Promise<any>;
     getAttendanceSettings(): Promise<any>;
+    getOvertimeSettings(): Promise<{
+        enabled: boolean;
+        minThresholdMinutes: number;
+        maxHoursPerDay: number;
+        maxHoursPerWeek: number;
+        maxHoursPerMonth: number;
+        weekdayRate: number;
+        weekendRate: number;
+        holidayRate: number;
+        requiresApproval: boolean;
+        managerApprovalRequired: boolean;
+        hrApprovalRequired: boolean;
+    }>;
     initializeDefaultSettings(userId: bigint): Promise<{
         message: string;
         created: string[];

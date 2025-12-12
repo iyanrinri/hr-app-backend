@@ -1,3 +1,4 @@
+import { PrismaService } from '../../../database/prisma.service';
 import { LeaveRequestRepository } from '../repositories/leave-request.repository';
 import { LeaveBalanceRepository } from '../repositories/leave-balance.repository';
 import { LeaveEmailService } from './leave-email.service';
@@ -7,7 +8,8 @@ export declare class LeaveRequestService {
     private readonly leaveRequestRepository;
     private readonly leaveBalanceRepository;
     private readonly leaveEmailService;
-    constructor(leaveRequestRepository: LeaveRequestRepository, leaveBalanceRepository: LeaveBalanceRepository, leaveEmailService: LeaveEmailService);
+    private readonly prisma;
+    constructor(leaveRequestRepository: LeaveRequestRepository, leaveBalanceRepository: LeaveBalanceRepository, leaveEmailService: LeaveEmailService, prisma: PrismaService);
     submitRequest(createDto: CreateLeaveRequestDto, employeeId: number): Promise<LeaveRequestResponseDto>;
     getEmployeeRequests(employeeId: number, filters: {
         status?: LeaveRequestStatus;
@@ -25,6 +27,8 @@ export declare class LeaveRequestService {
     }): Promise<LeaveRequestHistoryDto[]>;
     approveRequest(requestId: number, approverId: number, approverRole: Role, approveDto: ApproveLeaveRequestDto): Promise<LeaveRequestResponseDto>;
     rejectRequest(requestId: number, approverId: number, approverRole: Role, rejectDto: RejectLeaveRequestDto): Promise<LeaveRequestResponseDto>;
+    private checkHasSubordinates;
     private mapToResponseDto;
     private mapToHistoryDto;
+    private getApprovalStatuses;
 }

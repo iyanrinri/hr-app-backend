@@ -38,11 +38,6 @@ export class CreateEmployeeDto {
   @IsNotEmpty()
   joinDate: string;
 
-  @ApiProperty({ example: 5000 })
-  @IsNumber()
-  @IsNotEmpty()
-  baseSalary: number;
-
   @ApiProperty({ 
     example: 456, 
     description: 'Manager Employee ID (optional)',
@@ -51,4 +46,32 @@ export class CreateEmployeeDto {
   @IsOptional()
   @IsNumber()
   managerId?: number;
+
+  // Salary will be managed separately via salary module
+  @ApiProperty({ 
+    example: 5000000, 
+    description: 'Initial base salary (will create salary record)',
+    required: false
+  })
+  @IsOptional()
+  @IsNumber()
+  initialSalary?: number;
+
+  @ApiProperty({ 
+    example: 500000, 
+    description: 'Initial allowances (optional)',
+    required: false
+  })
+  @IsOptional()
+  @IsNumber()
+  initialAllowances?: number;
+
+  @ApiProperty({ 
+    example: 'Grade 5', 
+    description: 'Initial salary grade (optional)',
+    required: false
+  })
+  @IsOptional()
+  @IsString()
+  initialGrade?: string;
 }

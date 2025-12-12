@@ -126,6 +126,11 @@ class LeaveRequestResponseDto {
     hrComments;
     emergencyContact;
     handoverNotes;
+    requiresManagerApproval;
+    managerApprovalStatus;
+    managerApprovedAt;
+    hrApprovalStatus;
+    hrApprovedAt;
 }
 exports.LeaveRequestResponseDto = LeaveRequestResponseDto;
 __decorate([
@@ -184,6 +189,26 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: 'John will handle responsibilities' }),
     __metadata("design:type", String)
 ], LeaveRequestResponseDto.prototype, "handoverNotes", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: true }),
+    __metadata("design:type", Boolean)
+], LeaveRequestResponseDto.prototype, "requiresManagerApproval", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'PENDING' }),
+    __metadata("design:type", String)
+], LeaveRequestResponseDto.prototype, "managerApprovalStatus", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '2024-12-16T09:00:00Z' }),
+    __metadata("design:type", String)
+], LeaveRequestResponseDto.prototype, "managerApprovedAt", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'PENDING' }),
+    __metadata("design:type", String)
+], LeaveRequestResponseDto.prototype, "hrApprovalStatus", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '2024-12-17T10:00:00Z' }),
+    __metadata("design:type", String)
+], LeaveRequestResponseDto.prototype, "hrApprovedAt", void 0);
 class LeaveBalanceResponseDto {
     id;
     leaveTypeName;
@@ -275,6 +300,11 @@ class LeaveRequestHistoryDto {
     approvedAt;
     approvedBy;
     approverComments;
+    requiresManagerApproval;
+    managerApprovalStatus;
+    managerApprovedAt;
+    hrApprovalStatus;
+    hrApprovedAt;
 }
 exports.LeaveRequestHistoryDto = LeaveRequestHistoryDto;
 __decorate([
@@ -324,4 +354,24 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: 'Approved for family time' }),
     __metadata("design:type", String)
 ], LeaveRequestHistoryDto.prototype, "approverComments", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: true }),
+    __metadata("design:type", Boolean)
+], LeaveRequestHistoryDto.prototype, "requiresManagerApproval", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'PENDING' }),
+    __metadata("design:type", String)
+], LeaveRequestHistoryDto.prototype, "managerApprovalStatus", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '2024-12-16T09:00:00Z' }),
+    __metadata("design:type", String)
+], LeaveRequestHistoryDto.prototype, "managerApprovedAt", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'PENDING' }),
+    __metadata("design:type", String)
+], LeaveRequestHistoryDto.prototype, "hrApprovalStatus", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '2024-12-17T10:00:00Z' }),
+    __metadata("design:type", String)
+], LeaveRequestHistoryDto.prototype, "hrApprovedAt", void 0);
 //# sourceMappingURL=leave-request.dto.js.map

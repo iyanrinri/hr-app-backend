@@ -20,7 +20,6 @@ export declare class AttendanceRepository {
             position: string;
             department: string;
             joinDate: Date;
-            baseSalary: Prisma.Decimal;
             managerId: bigint | null;
             userId: bigint;
         };
@@ -30,8 +29,10 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            startDate: Date;
             endDate: Date;
+            isActive: boolean;
+            createdBy: bigint;
+            startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;
             workingStartTime: string;
@@ -40,16 +41,14 @@ export declare class AttendanceRepository {
             allowSundayWork: boolean;
             lateToleranceMinutes: number;
             earlyLeaveToleranceMinutes: number;
-            isActive: boolean;
-            createdBy: bigint;
         };
     } & {
         id: bigint;
         createdAt: Date;
         updatedAt: Date;
         status: import("@prisma/client").$Enums.AttendanceStatus;
-        notes: string | null;
         employeeId: bigint;
+        notes: string | null;
         attendancePeriodId: bigint;
         date: Date;
         checkIn: Date | null;
@@ -75,7 +74,6 @@ export declare class AttendanceRepository {
             position: string;
             department: string;
             joinDate: Date;
-            baseSalary: Prisma.Decimal;
             managerId: bigint | null;
             userId: bigint;
         };
@@ -85,8 +83,10 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            startDate: Date;
             endDate: Date;
+            isActive: boolean;
+            createdBy: bigint;
+            startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;
             workingStartTime: string;
@@ -95,16 +95,14 @@ export declare class AttendanceRepository {
             allowSundayWork: boolean;
             lateToleranceMinutes: number;
             earlyLeaveToleranceMinutes: number;
-            isActive: boolean;
-            createdBy: bigint;
         };
     } & {
         id: bigint;
         createdAt: Date;
         updatedAt: Date;
         status: import("@prisma/client").$Enums.AttendanceStatus;
-        notes: string | null;
         employeeId: bigint;
+        notes: string | null;
         attendancePeriodId: bigint;
         date: Date;
         checkIn: Date | null;
@@ -133,7 +131,6 @@ export declare class AttendanceRepository {
             position: string;
             department: string;
             joinDate: Date;
-            baseSalary: Prisma.Decimal;
             managerId: bigint | null;
             userId: bigint;
         };
@@ -143,8 +140,10 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            startDate: Date;
             endDate: Date;
+            isActive: boolean;
+            createdBy: bigint;
+            startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;
             workingStartTime: string;
@@ -153,16 +152,14 @@ export declare class AttendanceRepository {
             allowSundayWork: boolean;
             lateToleranceMinutes: number;
             earlyLeaveToleranceMinutes: number;
-            isActive: boolean;
-            createdBy: bigint;
         };
     } & {
         id: bigint;
         createdAt: Date;
         updatedAt: Date;
         status: import("@prisma/client").$Enums.AttendanceStatus;
-        notes: string | null;
         employeeId: bigint;
+        notes: string | null;
         attendancePeriodId: bigint;
         date: Date;
         checkIn: Date | null;
@@ -175,12 +172,12 @@ export declare class AttendanceRepository {
         id: bigint;
         createdAt: Date;
         type: import("@prisma/client").$Enums.AttendanceType;
+        employeeId: bigint;
+        notes: string | null;
         timestamp: Date;
         location: string;
         ipAddress: string | null;
         userAgent: string | null;
-        notes: string | null;
-        employeeId: bigint;
         attendancePeriodId: bigint;
     }>;
     findAttendanceHistory(params: {
@@ -205,23 +202,22 @@ export declare class AttendanceRepository {
             position: string;
             department: string;
             joinDate: Date;
-            baseSalary: Prisma.Decimal;
             managerId: bigint | null;
             userId: bigint;
         };
         attendancePeriod: {
             id: bigint;
             name: string;
-            startDate: Date;
             endDate: Date;
+            startDate: Date;
         };
     } & {
         id: bigint;
         createdAt: Date;
         updatedAt: Date;
         status: import("@prisma/client").$Enums.AttendanceStatus;
-        notes: string | null;
         employeeId: bigint;
+        notes: string | null;
         attendancePeriodId: bigint;
         date: Date;
         checkIn: Date | null;
@@ -252,7 +248,6 @@ export declare class AttendanceRepository {
             position: string;
             department: string;
             joinDate: Date;
-            baseSalary: Prisma.Decimal;
             managerId: bigint | null;
             userId: bigint;
         };
@@ -264,24 +259,24 @@ export declare class AttendanceRepository {
         id: bigint;
         createdAt: Date;
         type: import("@prisma/client").$Enums.AttendanceType;
+        employeeId: bigint;
+        notes: string | null;
         timestamp: Date;
         location: string;
         ipAddress: string | null;
         userAgent: string | null;
-        notes: string | null;
-        employeeId: bigint;
         attendancePeriodId: bigint;
     })[]>;
     getLatestLog(employeeId: bigint, date: Date, type?: AttendanceType): Promise<{
         id: bigint;
         createdAt: Date;
         type: import("@prisma/client").$Enums.AttendanceType;
+        employeeId: bigint;
+        notes: string | null;
         timestamp: Date;
         location: string;
         ipAddress: string | null;
         userAgent: string | null;
-        notes: string | null;
-        employeeId: bigint;
         attendancePeriodId: bigint;
     } | null>;
     findAttendanceWithLogs(attendanceId: bigint): Promise<({
@@ -301,7 +296,6 @@ export declare class AttendanceRepository {
             position: string;
             department: string;
             joinDate: Date;
-            baseSalary: Prisma.Decimal;
             managerId: bigint | null;
             userId: bigint;
         };
@@ -311,8 +305,10 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            startDate: Date;
             endDate: Date;
+            isActive: boolean;
+            createdBy: bigint;
+            startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;
             workingStartTime: string;
@@ -321,16 +317,14 @@ export declare class AttendanceRepository {
             allowSundayWork: boolean;
             lateToleranceMinutes: number;
             earlyLeaveToleranceMinutes: number;
-            isActive: boolean;
-            createdBy: bigint;
         };
     } & {
         id: bigint;
         createdAt: Date;
         updatedAt: Date;
         status: import("@prisma/client").$Enums.AttendanceStatus;
-        notes: string | null;
         employeeId: bigint;
+        notes: string | null;
         attendancePeriodId: bigint;
         date: Date;
         checkIn: Date | null;
@@ -371,7 +365,6 @@ export declare class AttendanceRepository {
             position: string;
             department: string;
             joinDate: Date;
-            baseSalary: Prisma.Decimal;
             managerId: bigint | null;
             userId: bigint;
         })[];
@@ -392,7 +385,6 @@ export declare class AttendanceRepository {
                 position: string;
                 department: string;
                 joinDate: Date;
-                baseSalary: Prisma.Decimal;
                 managerId: bigint | null;
                 userId: bigint;
             };
@@ -402,8 +394,10 @@ export declare class AttendanceRepository {
                 updatedAt: Date;
                 name: string;
                 description: string | null;
-                startDate: Date;
                 endDate: Date;
+                isActive: boolean;
+                createdBy: bigint;
+                startDate: Date;
                 workingDaysPerWeek: number;
                 workingHoursPerDay: number;
                 workingStartTime: string;
@@ -412,16 +406,14 @@ export declare class AttendanceRepository {
                 allowSundayWork: boolean;
                 lateToleranceMinutes: number;
                 earlyLeaveToleranceMinutes: number;
-                isActive: boolean;
-                createdBy: bigint;
             };
         } & {
             id: bigint;
             createdAt: Date;
             updatedAt: Date;
             status: import("@prisma/client").$Enums.AttendanceStatus;
-            notes: string | null;
             employeeId: bigint;
+            notes: string | null;
             attendancePeriodId: bigint;
             date: Date;
             checkIn: Date | null;
@@ -436,8 +428,10 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            startDate: Date;
             endDate: Date;
+            isActive: boolean;
+            createdBy: bigint;
+            startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;
             workingStartTime: string;
@@ -446,8 +440,6 @@ export declare class AttendanceRepository {
             allowSundayWork: boolean;
             lateToleranceMinutes: number;
             earlyLeaveToleranceMinutes: number;
-            isActive: boolean;
-            createdBy: bigint;
         } | null;
     }>;
     getEmployeeAttendanceToday(employeeId: number, date: Date): Promise<({
@@ -462,7 +454,6 @@ export declare class AttendanceRepository {
             position: string;
             department: string;
             joinDate: Date;
-            baseSalary: Prisma.Decimal;
             managerId: bigint | null;
             userId: bigint;
         };
@@ -472,8 +463,10 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            startDate: Date;
             endDate: Date;
+            isActive: boolean;
+            createdBy: bigint;
+            startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;
             workingStartTime: string;
@@ -482,16 +475,14 @@ export declare class AttendanceRepository {
             allowSundayWork: boolean;
             lateToleranceMinutes: number;
             earlyLeaveToleranceMinutes: number;
-            isActive: boolean;
-            createdBy: bigint;
         };
     } & {
         id: bigint;
         createdAt: Date;
         updatedAt: Date;
         status: import("@prisma/client").$Enums.AttendanceStatus;
-        notes: string | null;
         employeeId: bigint;
+        notes: string | null;
         attendancePeriodId: bigint;
         date: Date;
         checkIn: Date | null;

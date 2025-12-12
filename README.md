@@ -71,9 +71,23 @@ src/
 │   │   ├── controllers/
 │   │   ├── services/
 │   │   └── dto/
+│   ├── salary/         # ✅ Salary & salary history management
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   └── dto/
+│   ├── overtime/       # ✅ Overtime request & approval system
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   └── dto/
+│   ├── payroll/        # ✅ Payroll processing with overtime integration
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   └── dto/
 │   ├── attendance/     # 🔄 (Future implementation)
-│   ├── leave/          # 🔄 (Future implementation)
-│   └── payroll/        # 🔄 (Future implementation)
+│   └── leave/          # 🔄 (Future implementation)
 ├── prisma/             # Database schema & migrations
 │   ├── schema.prisma
 │   └── seed.ts

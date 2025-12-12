@@ -59,8 +59,8 @@ export class EmployeeController {
   @ApiResponse({ status: 409, description: 'User with this email already exists.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden - SUPER or HR role required.' })
-  create(@Body() createEmployeeDto: CreateEmployeeDto) {
-    return this.employeeService.create(createEmployeeDto);
+  create(@Body() createEmployeeDto: CreateEmployeeDto, @Request() req: any) {
+    return this.employeeService.create(createEmployeeDto, req.user.sub);
   }
 
   @Get()

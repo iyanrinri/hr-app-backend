@@ -83,10 +83,10 @@ export declare class LeaveBalanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            startDate: Date;
             endDate: Date;
             isActive: boolean;
             createdBy: bigint;
+            startDate: Date;
         };
         leaveTypeConfig: {
             id: bigint;
@@ -122,10 +122,10 @@ export declare class LeaveBalanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            startDate: Date;
             endDate: Date;
             isActive: boolean;
             createdBy: bigint;
+            startDate: Date;
         };
         leaveTypeConfig: {
             id: bigint;
@@ -209,10 +209,10 @@ export declare class LeaveBalanceRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
         isActive: boolean;
         createdBy: bigint;
+        startDate: Date;
     } | null>;
     updateQuotas(employeeId: bigint, leavePeriodId: bigint, leaveTypeConfigId: bigint, usedDays: number): Promise<{
         id: bigint;
@@ -233,10 +233,10 @@ export declare class LeaveBalanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
-            startDate: Date;
             endDate: Date;
             isActive: boolean;
             createdBy: bigint;
+            startDate: Date;
         };
         leaveTypeConfig: {
             id: bigint;

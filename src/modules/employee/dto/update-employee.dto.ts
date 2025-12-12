@@ -58,13 +58,13 @@ export class UpdateEmployeeDto {
   department?: string;
 
   @ApiProperty({ 
-    example: 85000,
-    description: 'Employee base salary',
+    example: '2024-01-01T00:00:00Z',
+    description: 'Employee join date',
     required: false
   })
   @IsOptional()
-  @IsNumber()
-  baseSalary?: number;
+  @IsDateString()
+  joinDate?: string;
 
   @ApiProperty({ 
     example: 456,
@@ -74,4 +74,6 @@ export class UpdateEmployeeDto {
   @IsOptional()
   @IsNumber()
   managerId?: number;
+
+  // Note: Salary updates should be done through salary module
 }

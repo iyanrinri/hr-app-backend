@@ -41,12 +41,16 @@ var __importStar = (this && this.__importStar) || (function () {
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmployeeService = void 0;
 const common_1 = require("@nestjs/common");
 const employee_repository_1 = require("../repositories/employee.repository");
 const client_1 = require("@prisma/client");
 const bcrypt = __importStar(require("bcrypt"));
+const salary_service_1 = require("../../salary/services/salary.service");
 function parsePrismaError(error) {
     const cause = error.meta?.driverAdapterError?.cause;
     const kind = cause?.kind;
@@ -63,11 +67,13 @@ function parsePrismaError(error) {
 }
 let EmployeeService = class EmployeeService {
     repository;
-    constructor(repository) {
+    salaryService;
+    constructor(repository, salaryService) {
         this.repository = repository;
+        this.salaryService = salaryService;
     }
-    async create(createEmployeeDto) {
-        const { email, password, managerId, ...employeeData } = createEmployeeDto;
+    async create(createEmployeeDto, createdBy) {
+        const { email, password, managerId, initialSalary, initialAllowances, initialGrade, ...employeeData } = createEmployeeDto;
         const hashedPassword = await bcrypt.hash(password, 10);
         if (managerId) {
             const manager = await this.repository.findById(BigInt(managerId));
@@ -91,7 +97,25 @@ let EmployeeService = class EmployeeService {
                     connect: { id: BigInt(managerId) }
                 };
             }
-            return await this.repository.create(createData);
+            const employee = await this.repository.create(createData);
+            if (initialSalary && initialSalary > 0) {
+                try {
+                    await this.salaryService.create({
+                        employeeId: Number(employee.id),
+                        baseSalary: initialSalary,
+                        allowances: initialAllowances || 0,
+                        grade: initialGrade,
+                        effectiveDate: createEmployeeDto.joinDate,
+                        isActive: true,
+                        notes: 'Initial salary setup during employee creation',
+                        createdBy: parseInt(createdBy),
+                    });
+                }
+                catch (error) {
+                    console.error('Failed to create initial salary record:', error);
+                }
+            }
+            return employee;
         }
         catch (error) {
             const meta = parsePrismaError(error);
@@ -226,8 +250,8 @@ let EmployeeService = class EmployeeService {
             updateData.position = employeeData.position;
         if (employeeData.department !== undefined)
             updateData.department = employeeData.department;
-        if (employeeData.baseSalary !== undefined)
-            updateData.baseSalary = employeeData.baseSalary;
+        if (employeeData.firstName !== undefined)
+            updateData.firstName = employeeData.firstName;
         let userUpdateData = {};
         if (email !== undefined) {
             userUpdateData.email = email;
@@ -310,6 +334,14 @@ let EmployeeService = class EmployeeService {
             throw new common_1.NotFoundException('Manager not found');
         }
         const subordinateIds = assignDto.subordinateIds.map(id => BigInt(id));
+        if (subordinateIds.length === 0) {
+            await this.repository.removeAllSubordinates(managerId);
+            return {
+                message: 'All subordinates removed successfully',
+                managerId: Number(managerId),
+                assignedSubordinates: []
+            };
+        }
         const subordinates = await this.repository.findByIds(subordinateIds);
         if (subordinates.length !== subordinateIds.length) {
             throw new common_1.BadRequestException('One or more subordinates not found');
@@ -405,6 +437,8 @@ let EmployeeService = class EmployeeService {
 exports.EmployeeService = EmployeeService;
 exports.EmployeeService = EmployeeService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [employee_repository_1.EmployeeRepository])
+    __param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => salary_service_1.SalaryService))),
+    __metadata("design:paramtypes", [employee_repository_1.EmployeeRepository,
+        salary_service_1.SalaryService])
 ], EmployeeService);
 //# sourceMappingURL=employee.service.js.map

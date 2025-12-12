@@ -11,11 +11,13 @@ const common_1 = require("@nestjs/common");
 const employee_service_1 = require("./services/employee.service");
 const employee_controller_1 = require("./controllers/employee.controller");
 const employee_repository_1 = require("./repositories/employee.repository");
+const salary_module_1 = require("../salary/salary.module");
 let EmployeeModule = class EmployeeModule {
 };
 exports.EmployeeModule = EmployeeModule;
 exports.EmployeeModule = EmployeeModule = __decorate([
     (0, common_1.Module)({
+        imports: [(0, common_1.forwardRef)(() => salary_module_1.SalaryModule)],
         controllers: [employee_controller_1.EmployeeController],
         providers: [employee_service_1.EmployeeService, employee_repository_1.EmployeeRepository],
         exports: [employee_service_1.EmployeeService, employee_repository_1.EmployeeRepository],

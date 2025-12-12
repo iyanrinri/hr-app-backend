@@ -163,6 +163,15 @@ let SettingsService = class SettingsService {
             autoClockOutTime: '18:00',
             overtimeEnabled: false,
             overtimeMinThreshold: 60,
+            overtimeMaxHoursPerDay: 4,
+            overtimeMaxHoursPerWeek: 20,
+            overtimeMaxHoursPerMonth: 80,
+            overtimeWeekdayRate: 1.5,
+            overtimeWeekendRate: 2.0,
+            overtimeHolidayRate: 3.0,
+            overtimeRequiresApproval: true,
+            overtimeManagerApprovalRequired: true,
+            overtimeHrApprovalRequired: true,
         };
         attendanceSettings.forEach(setting => {
             const parsed = this.parseSettingValue(setting.value, setting.dataType);
@@ -203,9 +212,51 @@ let SettingsService = class SettingsService {
                 case 'attendance_overtime_threshold':
                     settings.overtimeMinThreshold = parsed;
                     break;
+                case 'overtime_max_hours_per_day':
+                    settings.overtimeMaxHoursPerDay = parsed;
+                    break;
+                case 'overtime_max_hours_per_week':
+                    settings.overtimeMaxHoursPerWeek = parsed;
+                    break;
+                case 'overtime_max_hours_per_month':
+                    settings.overtimeMaxHoursPerMonth = parsed;
+                    break;
+                case 'overtime_weekday_rate':
+                    settings.overtimeWeekdayRate = parsed;
+                    break;
+                case 'overtime_weekend_rate':
+                    settings.overtimeWeekendRate = parsed;
+                    break;
+                case 'overtime_holiday_rate':
+                    settings.overtimeHolidayRate = parsed;
+                    break;
+                case 'overtime_requires_approval':
+                    settings.overtimeRequiresApproval = parsed;
+                    break;
+                case 'overtime_manager_approval_required':
+                    settings.overtimeManagerApprovalRequired = parsed;
+                    break;
+                case 'overtime_hr_approval_required':
+                    settings.overtimeHrApprovalRequired = parsed;
+                    break;
             }
         });
         return settings;
+    }
+    async getOvertimeSettings() {
+        return {
+            enabled: false,
+            minThresholdMinutes: 60,
+            maxHoursPerDay: 4,
+            maxHoursPerWeek: 20,
+            maxHoursPerMonth: 80,
+            weekdayRate: 1.5,
+            weekendRate: 2.0,
+            holidayRate: 3.0,
+            requiresApproval: true,
+            managerApprovalRequired: true,
+            hrApprovalRequired: true,
+        };
     }
     async initializeDefaultSettings(userId) {
         const defaultSettings = [
@@ -228,6 +279,8 @@ let SettingsService = class SettingsService {
             { key: 'attendance_checkpoint_address', value: '', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Check point address', dataType: create_setting_dto_1.SettingDataType.STRING, isPublic: false },
             { key: 'attendance_late_tolerance', value: '15', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Late tolerance in minutes', dataType: create_setting_dto_1.SettingDataType.INTEGER, isPublic: false },
             { key: 'attendance_early_leave_tolerance', value: '15', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Early leave tolerance in minutes', dataType: create_setting_dto_1.SettingDataType.INTEGER, isPublic: false },
+            { key: 'attendance_overtime_enabled', value: 'false', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Enable overtime tracking', dataType: create_setting_dto_1.SettingDataType.BOOLEAN, isPublic: false },
+            { key: 'attendance_overtime_threshold', value: '60', category: create_setting_dto_1.SettingCategory.ATTENDANCE, description: 'Overtime threshold in minutes', dataType: create_setting_dto_1.SettingDataType.INTEGER, isPublic: false },
             { key: 'notification_email_enabled', value: 'false', category: create_setting_dto_1.SettingCategory.NOTIFICATION, description: 'Enable email notifications', dataType: create_setting_dto_1.SettingDataType.BOOLEAN, isPublic: false },
             { key: 'notification_sms_enabled', value: 'false', category: create_setting_dto_1.SettingCategory.NOTIFICATION, description: 'Enable SMS notifications', dataType: create_setting_dto_1.SettingDataType.BOOLEAN, isPublic: false },
             { key: 'notification_realtime_enabled', value: 'true', category: create_setting_dto_1.SettingCategory.NOTIFICATION, description: 'Enable real-time notifications', dataType: create_setting_dto_1.SettingDataType.BOOLEAN, isPublic: false },

@@ -121,6 +121,21 @@ export class LeaveRequestResponseDto {
 
   @ApiPropertyOptional({ example: 'John will handle responsibilities' })
   handoverNotes?: string;
+
+  @ApiPropertyOptional({ example: true })
+  requiresManagerApproval?: boolean;
+
+  @ApiPropertyOptional({ example: 'PENDING' })
+  managerApprovalStatus?: string;
+
+  @ApiPropertyOptional({ example: '2024-12-16T09:00:00Z' })
+  managerApprovedAt?: string;
+
+  @ApiPropertyOptional({ example: 'PENDING' })
+  hrApprovalStatus?: string;
+
+  @ApiPropertyOptional({ example: '2024-12-17T10:00:00Z' })
+  hrApprovedAt?: string;
 }
 
 export class LeaveBalanceResponseDto {
@@ -208,4 +223,19 @@ export class LeaveRequestHistoryDto {
 
   @ApiPropertyOptional({ example: 'Approved for family time' })
   approverComments?: string;
+
+  @ApiPropertyOptional({ example: true })
+  requiresManagerApproval?: boolean;
+
+  @ApiPropertyOptional({ example: 'PENDING' })
+  managerApprovalStatus?: string;
+
+  @ApiPropertyOptional({ example: '2024-12-16T09:00:00Z' })
+  managerApprovedAt?: string;
+
+  @ApiPropertyOptional({ example: 'PENDING' })
+  hrApprovalStatus?: string;
+
+  @ApiPropertyOptional({ example: '2024-12-17T10:00:00Z' })
+  hrApprovedAt?: string;
 }

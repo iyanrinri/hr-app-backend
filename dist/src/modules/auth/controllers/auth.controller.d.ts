@@ -10,6 +10,7 @@ export declare class AuthController {
             id: any;
             email: any;
             role: any;
+            hasSubordinates: boolean;
         };
     }>;
     register(registerDto: RegisterDto): Promise<{
@@ -18,12 +19,14 @@ export declare class AuthController {
             id: string;
             email: string;
             role: import("@prisma/client").$Enums.Role;
+            hasSubordinates: boolean;
         };
     }>;
     getProfile(req: any): Promise<{
         id: string;
         email: string;
         role: import("@prisma/client").$Enums.Role;
+        hasSubordinates: boolean;
         createdAt: string;
         updatedAt: string;
     }>;

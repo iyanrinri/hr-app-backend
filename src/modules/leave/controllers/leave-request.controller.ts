@@ -127,8 +127,11 @@ export class LeaveRequestController {
   }
 
   @Get('pending/for-approval')
-  @Roles(Role.HR, Role.SUPER)
-  @ApiOperation({ summary: 'Get leave requests pending for approval (HR/Manager only)' })
+  @Roles(Role.HR, Role.SUPER, Role.MANAGER, Role.EMPLOYEE)
+  @ApiOperation({ 
+    summary: 'Get leave requests pending for approval',
+    description: 'Manager/Employee with subordinates: See PENDING requests from subordinates. HR/SUPER: See MANAGER_APPROVED requests waiting for final approval.'
+  })
   @ApiQuery({ name: 'department', required: false, description: 'Filter by department' })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
@@ -156,9 +159,12 @@ export class LeaveRequestController {
   }
 
   @Patch(':id/approve')
-  @Roles(Role.HR, Role.SUPER)
+  @Roles(Role.HR, Role.SUPER, Role.MANAGER, Role.EMPLOYEE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Approve a leave request (HR/Manager only)' })
+  @ApiOperation({ 
+    summary: 'Approve a leave request', 
+    description: 'Two-level approval: 1) Manager approves PENDING→MANAGER_APPROVED, 2) HR approves MANAGER_APPROVED→APPROVED'
+  })
   @ApiParam({ name: 'id', type: 'number', description: 'Leave request ID' })
   @ApiBody({ type: ApproveLeaveRequestDto })
   @ApiResponse({ 
@@ -180,9 +186,9 @@ export class LeaveRequestController {
       approveDto
     );
   }  @Patch(':id/reject')
-  @Roles(Role.HR, Role.SUPER)
+  @Roles(Role.HR, Role.SUPER, Role.MANAGER, Role.EMPLOYEE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Reject a leave request (HR/Manager only)' })
+  @ApiOperation({ summary: 'Reject a leave request (HR/Manager/Employee with subordinates only)' })
   @ApiParam({ name: 'id', type: 'number', description: 'Leave request ID' })
   @ApiBody({ type: RejectLeaveRequestDto })
   @ApiResponse({ 

@@ -4,10 +4,9 @@ import { ApiProperty } from '@nestjs/swagger';
 export class AssignSubordinatesDto {
   @ApiProperty({ 
     example: [123, 456, 789],
-    description: 'Array of employee IDs to assign as subordinates'
+    description: 'Array of employee IDs to assign as subordinates. Use empty array to remove all subordinates'
   })
   @IsArray()
-  @ArrayNotEmpty()
   @IsNumber({}, { each: true })
   subordinateIds: number[];
 }

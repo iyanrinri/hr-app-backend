@@ -19,10 +19,9 @@ exports.AssignSubordinatesDto = AssignSubordinatesDto;
 __decorate([
     (0, swagger_1.ApiProperty)({
         example: [123, 456, 789],
-        description: 'Array of employee IDs to assign as subordinates'
+        description: 'Array of employee IDs to assign as subordinates. Use empty array to remove all subordinates'
     }),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.ArrayNotEmpty)(),
     (0, class_validator_1.IsNumber)({}, { each: true }),
     __metadata("design:type", Array)
 ], AssignSubordinatesDto.prototype, "subordinateIds", void 0);

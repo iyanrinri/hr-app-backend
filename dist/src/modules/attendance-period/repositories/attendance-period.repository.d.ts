@@ -21,8 +21,10 @@ export declare class AttendancePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
+        isActive: boolean;
+        createdBy: bigint;
+        startDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
         workingStartTime: string;
@@ -31,8 +33,6 @@ export declare class AttendancePeriodRepository {
         allowSundayWork: boolean;
         lateToleranceMinutes: number;
         earlyLeaveToleranceMinutes: number;
-        isActive: boolean;
-        createdBy: bigint;
     }>;
     findAll(params: {
         skip?: number;
@@ -61,8 +61,10 @@ export declare class AttendancePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
+        isActive: boolean;
+        createdBy: bigint;
+        startDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
         workingStartTime: string;
@@ -71,8 +73,6 @@ export declare class AttendancePeriodRepository {
         allowSundayWork: boolean;
         lateToleranceMinutes: number;
         earlyLeaveToleranceMinutes: number;
-        isActive: boolean;
-        createdBy: bigint;
     })[]>;
     findOne(where: Prisma.AttendancePeriodWhereUniqueInput): Promise<({
         _count: {
@@ -96,8 +96,10 @@ export declare class AttendancePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
+        isActive: boolean;
+        createdBy: bigint;
+        startDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
         workingStartTime: string;
@@ -106,8 +108,6 @@ export declare class AttendancePeriodRepository {
         allowSundayWork: boolean;
         lateToleranceMinutes: number;
         earlyLeaveToleranceMinutes: number;
-        isActive: boolean;
-        createdBy: bigint;
     }) | null>;
     update(params: {
         where: Prisma.AttendancePeriodWhereUniqueInput;
@@ -130,8 +130,10 @@ export declare class AttendancePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
+        isActive: boolean;
+        createdBy: bigint;
+        startDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
         workingStartTime: string;
@@ -140,8 +142,6 @@ export declare class AttendancePeriodRepository {
         allowSundayWork: boolean;
         lateToleranceMinutes: number;
         earlyLeaveToleranceMinutes: number;
-        isActive: boolean;
-        createdBy: bigint;
     }>;
     delete(where: Prisma.AttendancePeriodWhereUniqueInput): Promise<{
         id: bigint;
@@ -149,8 +149,10 @@ export declare class AttendancePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
+        isActive: boolean;
+        createdBy: bigint;
+        startDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
         workingStartTime: string;
@@ -159,8 +161,6 @@ export declare class AttendancePeriodRepository {
         allowSundayWork: boolean;
         lateToleranceMinutes: number;
         earlyLeaveToleranceMinutes: number;
-        isActive: boolean;
-        createdBy: bigint;
     }>;
     count(where?: Prisma.AttendancePeriodWhereInput): Promise<number>;
     findActivePeriod(): Promise<({
@@ -181,8 +181,10 @@ export declare class AttendancePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
+        isActive: boolean;
+        createdBy: bigint;
+        startDate: Date;
         workingDaysPerWeek: number;
         workingHoursPerDay: number;
         workingStartTime: string;
@@ -191,8 +193,6 @@ export declare class AttendancePeriodRepository {
         allowSundayWork: boolean;
         lateToleranceMinutes: number;
         earlyLeaveToleranceMinutes: number;
-        isActive: boolean;
-        createdBy: bigint;
     }) | null>;
     createHoliday(data: Prisma.HolidayCreateInput): Promise<{
         id: bigint;

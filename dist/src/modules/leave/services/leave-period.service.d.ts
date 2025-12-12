@@ -11,10 +11,10 @@ export declare class LeavePeriodService {
         updatedAt: Date;
         name: string;
         description: string | null;
-        startDate: Date;
         endDate: Date;
         isActive: boolean;
         createdBy: bigint;
+        startDate: Date;
     }>;
     findAll(params?: {
         page?: number;
