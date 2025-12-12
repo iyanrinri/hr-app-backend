@@ -30,6 +30,43 @@ model Employee {
   department     String
   joinDate       DateTime
   managerId      BigInt?
+  
+  // Personal Information
+  employeeNumber        String?   @unique
+  dateOfBirth           DateTime?
+  gender                Gender?
+  maritalStatus         MaritalStatus?
+  nationality           String?
+  religion              String?
+  bloodType             String?
+  idNumber              String?   @unique
+  taxNumber             String?
+  
+  // Contact Information
+  phoneNumber           String?
+  alternativePhone      String?
+  address               String?
+  city                  String?
+  province              String?
+  postalCode            String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  emergencyContactRelation String?
+  
+  // Bank Information
+  bankName              String?
+  bankAccountNumber     String?
+  bankAccountName       String?
+  
+  // Employment Details
+  employmentStatus      EmploymentStatus @default(PERMANENT)
+  contractStartDate     DateTime?
+  contractEndDate       DateTime?
+  workLocation          String?
+  
+  // Profile Picture
+  profilePicture        String?
+  
   isDeleted      Boolean         @default(false)
   deletedAt      DateTime?
   createdAt      DateTime        @default(now())
@@ -175,6 +212,26 @@ enum Role {
   HR
   MANAGER
   EMPLOYEE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+enum EmploymentStatus {
+  PERMANENT
+  CONTRACT
+  PROBATION
+  INTERN
 }
 
 enum AttendanceStatus {

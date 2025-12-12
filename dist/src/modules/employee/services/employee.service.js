@@ -433,6 +433,189 @@ let EmployeeService = class EmployeeService {
             managerId: employee.managerId ? Number(employee.managerId) : undefined
         };
     }
+    async updateProfile(employeeId, updateData) {
+        const employee = await this.repository.findById(employeeId);
+        if (!employee) {
+            throw new common_1.NotFoundException('Employee not found');
+        }
+        const data = {};
+        if (updateData.firstName !== undefined)
+            data.firstName = updateData.firstName;
+        if (updateData.lastName !== undefined)
+            data.lastName = updateData.lastName;
+        if (updateData.employeeNumber !== undefined)
+            data.employeeNumber = updateData.employeeNumber;
+        if (updateData.dateOfBirth !== undefined)
+            data.dateOfBirth = new Date(updateData.dateOfBirth);
+        if (updateData.gender !== undefined)
+            data.gender = updateData.gender;
+        if (updateData.maritalStatus !== undefined)
+            data.maritalStatus = updateData.maritalStatus;
+        if (updateData.nationality !== undefined)
+            data.nationality = updateData.nationality;
+        if (updateData.religion !== undefined)
+            data.religion = updateData.religion;
+        if (updateData.bloodType !== undefined)
+            data.bloodType = updateData.bloodType;
+        if (updateData.idNumber !== undefined)
+            data.idNumber = updateData.idNumber;
+        if (updateData.taxNumber !== undefined)
+            data.taxNumber = updateData.taxNumber;
+        if (updateData.phoneNumber !== undefined)
+            data.phoneNumber = updateData.phoneNumber;
+        if (updateData.alternativePhone !== undefined)
+            data.alternativePhone = updateData.alternativePhone;
+        if (updateData.address !== undefined)
+            data.address = updateData.address;
+        if (updateData.city !== undefined)
+            data.city = updateData.city;
+        if (updateData.province !== undefined)
+            data.province = updateData.province;
+        if (updateData.postalCode !== undefined)
+            data.postalCode = updateData.postalCode;
+        if (updateData.emergencyContactName !== undefined)
+            data.emergencyContactName = updateData.emergencyContactName;
+        if (updateData.emergencyContactPhone !== undefined)
+            data.emergencyContactPhone = updateData.emergencyContactPhone;
+        if (updateData.emergencyContactRelation !== undefined)
+            data.emergencyContactRelation = updateData.emergencyContactRelation;
+        if (updateData.bankName !== undefined)
+            data.bankName = updateData.bankName;
+        if (updateData.bankAccountNumber !== undefined)
+            data.bankAccountNumber = updateData.bankAccountNumber;
+        if (updateData.bankAccountName !== undefined)
+            data.bankAccountName = updateData.bankAccountName;
+        if (updateData.position !== undefined)
+            data.position = updateData.position;
+        if (updateData.department !== undefined)
+            data.department = updateData.department;
+        if (updateData.employmentStatus !== undefined)
+            data.employmentStatus = updateData.employmentStatus;
+        if (updateData.contractStartDate !== undefined)
+            data.contractStartDate = new Date(updateData.contractStartDate);
+        if (updateData.contractEndDate !== undefined)
+            data.contractEndDate = new Date(updateData.contractEndDate);
+        if (updateData.workLocation !== undefined)
+            data.workLocation = updateData.workLocation;
+        return this.repository.update({
+            where: { id: employeeId },
+            data
+        });
+    }
+    async getProfile(employeeId) {
+        const employee = await this.repository.findOne({
+            id: employeeId
+        });
+        if (!employee) {
+            throw new common_1.NotFoundException('Employee not found');
+        }
+        return this.transformEmployeeProfile(employee);
+    }
+    transformEmployeeProfile(employee) {
+        return {
+            id: employee.id.toString(),
+            userId: employee.userId.toString(),
+            firstName: employee.firstName,
+            lastName: employee.lastName,
+            position: employee.position,
+            department: employee.department,
+            joinDate: employee.joinDate instanceof Date ? employee.joinDate.toISOString() : employee.joinDate,
+            managerId: employee.managerId?.toString(),
+            employeeNumber: employee.employeeNumber,
+            dateOfBirth: employee.dateOfBirth instanceof Date ? employee.dateOfBirth.toISOString() : employee.dateOfBirth,
+            gender: employee.gender,
+            maritalStatus: employee.maritalStatus,
+            nationality: employee.nationality,
+            religion: employee.religion,
+            bloodType: employee.bloodType,
+            idNumber: employee.idNumber,
+            taxNumber: employee.taxNumber,
+            phoneNumber: employee.phoneNumber,
+            alternativePhone: employee.alternativePhone,
+            address: employee.address,
+            city: employee.city,
+            province: employee.province,
+            postalCode: employee.postalCode,
+            emergencyContactName: employee.emergencyContactName,
+            emergencyContactPhone: employee.emergencyContactPhone,
+            emergencyContactRelation: employee.emergencyContactRelation,
+            bankName: employee.bankName,
+            bankAccountNumber: employee.bankAccountNumber,
+            bankAccountName: employee.bankAccountName,
+            employmentStatus: employee.employmentStatus,
+            contractStartDate: employee.contractStartDate instanceof Date ? employee.contractStartDate.toISOString() : employee.contractStartDate,
+            contractEndDate: employee.contractEndDate instanceof Date ? employee.contractEndDate.toISOString() : employee.contractEndDate,
+            workLocation: employee.workLocation,
+            profilePicture: employee.profilePicture,
+            createdAt: employee.createdAt instanceof Date ? employee.createdAt.toISOString() : employee.createdAt,
+            updatedAt: employee.updatedAt instanceof Date ? employee.updatedAt.toISOString() : employee.updatedAt,
+            manager: employee.manager ? {
+                id: employee.manager.id.toString(),
+                firstName: employee.manager.firstName,
+                lastName: employee.manager.lastName,
+                position: employee.manager.position,
+            } : undefined,
+            user: employee.user ? {
+                id: employee.user.id.toString(),
+                email: employee.user.email,
+                role: employee.user.role,
+            } : undefined,
+        };
+    }
+    async uploadProfilePicture(employeeId, filename, baseUrl) {
+        const employee = await this.repository.findById(employeeId);
+        if (!employee) {
+            throw new common_1.NotFoundException('Employee not found');
+        }
+        if (employee.profilePicture) {
+            const oldFilePath = employee.profilePicture.replace(baseUrl + '/uploads/profiles/', '');
+            try {
+                const fs = require('fs');
+                const path = require('path');
+                const fullPath = path.join(process.cwd(), 'uploads', 'profiles', oldFilePath);
+                if (fs.existsSync(fullPath)) {
+                    fs.unlinkSync(fullPath);
+                }
+            }
+            catch (error) {
+            }
+        }
+        const profilePictureUrl = `${baseUrl}/uploads/profiles/${filename}`;
+        const updated = await this.repository.update({
+            where: { id: employeeId },
+            data: { profilePicture: profilePictureUrl }
+        });
+        return {
+            url: profilePictureUrl,
+            filename,
+            message: 'Profile picture uploaded successfully'
+        };
+    }
+    async deleteProfilePicture(employeeId) {
+        const employee = await this.repository.findById(employeeId);
+        if (!employee) {
+            throw new common_1.NotFoundException('Employee not found');
+        }
+        if (!employee.profilePicture) {
+            throw new common_1.BadRequestException('No profile picture to delete');
+        }
+        const filename = employee.profilePicture.split('/').pop();
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const fullPath = path.join(process.cwd(), 'uploads', 'profiles', filename);
+            if (fs.existsSync(fullPath)) {
+                fs.unlinkSync(fullPath);
+            }
+        }
+        catch (error) {
+        }
+        await this.repository.update({
+            where: { id: employeeId },
+            data: { profilePicture: null }
+        });
+        return { message: 'Profile picture deleted successfully' };
+    }
 };
 exports.EmployeeService = EmployeeService;
 exports.EmployeeService = EmployeeService = __decorate([

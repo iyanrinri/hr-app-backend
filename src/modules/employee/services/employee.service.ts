@@ -516,4 +516,214 @@ export class EmployeeService {
       managerId: employee.managerId ? Number(employee.managerId) : undefined
     };
   }
+
+  /**
+   * Update employee profile (for self-service or admin)
+   */
+  async updateProfile(employeeId: bigint, updateData: any) {
+    const employee = await this.repository.findById(employeeId);
+    if (!employee) {
+      throw new NotFoundException('Employee not found');
+    }
+
+    // Prepare update data
+    const data: any = {};
+    
+    // Personal Information
+    if (updateData.firstName !== undefined) data.firstName = updateData.firstName;
+    if (updateData.lastName !== undefined) data.lastName = updateData.lastName;
+    if (updateData.employeeNumber !== undefined) data.employeeNumber = updateData.employeeNumber;
+    if (updateData.dateOfBirth !== undefined) data.dateOfBirth = new Date(updateData.dateOfBirth);
+    if (updateData.gender !== undefined) data.gender = updateData.gender;
+    if (updateData.maritalStatus !== undefined) data.maritalStatus = updateData.maritalStatus;
+    if (updateData.nationality !== undefined) data.nationality = updateData.nationality;
+    if (updateData.religion !== undefined) data.religion = updateData.religion;
+    if (updateData.bloodType !== undefined) data.bloodType = updateData.bloodType;
+    if (updateData.idNumber !== undefined) data.idNumber = updateData.idNumber;
+    if (updateData.taxNumber !== undefined) data.taxNumber = updateData.taxNumber;
+
+    // Contact Information
+    if (updateData.phoneNumber !== undefined) data.phoneNumber = updateData.phoneNumber;
+    if (updateData.alternativePhone !== undefined) data.alternativePhone = updateData.alternativePhone;
+    if (updateData.address !== undefined) data.address = updateData.address;
+    if (updateData.city !== undefined) data.city = updateData.city;
+    if (updateData.province !== undefined) data.province = updateData.province;
+    if (updateData.postalCode !== undefined) data.postalCode = updateData.postalCode;
+    if (updateData.emergencyContactName !== undefined) data.emergencyContactName = updateData.emergencyContactName;
+    if (updateData.emergencyContactPhone !== undefined) data.emergencyContactPhone = updateData.emergencyContactPhone;
+    if (updateData.emergencyContactRelation !== undefined) data.emergencyContactRelation = updateData.emergencyContactRelation;
+
+    // Bank Information
+    if (updateData.bankName !== undefined) data.bankName = updateData.bankName;
+    if (updateData.bankAccountNumber !== undefined) data.bankAccountNumber = updateData.bankAccountNumber;
+    if (updateData.bankAccountName !== undefined) data.bankAccountName = updateData.bankAccountName;
+
+    // Employment Details
+    if (updateData.position !== undefined) data.position = updateData.position;
+    if (updateData.department !== undefined) data.department = updateData.department;
+    if (updateData.employmentStatus !== undefined) data.employmentStatus = updateData.employmentStatus;
+    if (updateData.contractStartDate !== undefined) data.contractStartDate = new Date(updateData.contractStartDate);
+    if (updateData.contractEndDate !== undefined) data.contractEndDate = new Date(updateData.contractEndDate);
+    if (updateData.workLocation !== undefined) data.workLocation = updateData.workLocation;
+
+    return this.repository.update({
+      where: { id: employeeId },
+      data
+    });
+  }
+
+  /**
+   * Get employee profile with complete information
+   */
+  async getProfile(employeeId: bigint) {
+    const employee = await this.repository.findOne({
+      id: employeeId
+    });
+
+    if (!employee) {
+      throw new NotFoundException('Employee not found');
+    }
+
+    return this.transformEmployeeProfile(employee);
+  }
+
+  /**
+   * Transform employee to profile response
+   */
+  private transformEmployeeProfile(employee: any) {
+    return {
+      id: employee.id.toString(),
+      userId: employee.userId.toString(),
+      firstName: employee.firstName,
+      lastName: employee.lastName,
+      position: employee.position,
+      department: employee.department,
+      joinDate: employee.joinDate instanceof Date ? employee.joinDate.toISOString() : employee.joinDate,
+      managerId: employee.managerId?.toString(),
+      
+      // Personal Information
+      employeeNumber: employee.employeeNumber,
+      dateOfBirth: employee.dateOfBirth instanceof Date ? employee.dateOfBirth.toISOString() : employee.dateOfBirth,
+      gender: employee.gender,
+      maritalStatus: employee.maritalStatus,
+      nationality: employee.nationality,
+      religion: employee.religion,
+      bloodType: employee.bloodType,
+      idNumber: employee.idNumber,
+      taxNumber: employee.taxNumber,
+
+      // Contact Information
+      phoneNumber: employee.phoneNumber,
+      alternativePhone: employee.alternativePhone,
+      address: employee.address,
+      city: employee.city,
+      province: employee.province,
+      postalCode: employee.postalCode,
+      emergencyContactName: employee.emergencyContactName,
+      emergencyContactPhone: employee.emergencyContactPhone,
+      emergencyContactRelation: employee.emergencyContactRelation,
+
+      // Bank Information
+      bankName: employee.bankName,
+      bankAccountNumber: employee.bankAccountNumber,
+      bankAccountName: employee.bankAccountName,
+
+      // Employment Details
+      employmentStatus: employee.employmentStatus,
+      contractStartDate: employee.contractStartDate instanceof Date ? employee.contractStartDate.toISOString() : employee.contractStartDate,
+      contractEndDate: employee.contractEndDate instanceof Date ? employee.contractEndDate.toISOString() : employee.contractEndDate,
+      workLocation: employee.workLocation,
+
+      // Profile Picture
+      profilePicture: employee.profilePicture,
+
+      createdAt: employee.createdAt instanceof Date ? employee.createdAt.toISOString() : employee.createdAt,
+      updatedAt: employee.updatedAt instanceof Date ? employee.updatedAt.toISOString() : employee.updatedAt,
+
+      manager: employee.manager ? {
+        id: employee.manager.id.toString(),
+        firstName: employee.manager.firstName,
+        lastName: employee.manager.lastName,
+        position: employee.manager.position,
+      } : undefined,
+
+      user: employee.user ? {
+        id: employee.user.id.toString(),
+        email: employee.user.email,
+        role: employee.user.role,
+      } : undefined,
+    };
+  }
+
+  /**
+   * Upload profile picture
+   */
+  async uploadProfilePicture(employeeId: bigint, filename: string, baseUrl: string) {
+    const employee = await this.repository.findById(employeeId);
+    if (!employee) {
+      throw new NotFoundException('Employee not found');
+    }
+
+    // Delete old profile picture file if exists
+    if (employee.profilePicture) {
+      const oldFilePath = employee.profilePicture.replace(baseUrl + '/uploads/profiles/', '');
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const fullPath = path.join(process.cwd(), 'uploads', 'profiles', oldFilePath);
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+        }
+      } catch (error) {
+        // Ignore error if file doesn't exist
+      }
+    }
+
+    const profilePictureUrl = `${baseUrl}/uploads/profiles/${filename}`;
+
+    const updated = await this.repository.update({
+      where: { id: employeeId },
+      data: { profilePicture: profilePictureUrl }
+    });
+
+    return {
+      url: profilePictureUrl,
+      filename,
+      message: 'Profile picture uploaded successfully'
+    };
+  }
+
+  /**
+   * Delete profile picture
+   */
+  async deleteProfilePicture(employeeId: bigint) {
+    const employee = await this.repository.findById(employeeId);
+    if (!employee) {
+      throw new NotFoundException('Employee not found');
+    }
+
+    if (!employee.profilePicture) {
+      throw new BadRequestException('No profile picture to delete');
+    }
+
+    // Delete file
+    const filename = employee.profilePicture.split('/').pop();
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const fullPath = path.join(process.cwd(), 'uploads', 'profiles', filename);
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath);
+      }
+    } catch (error) {
+      // Ignore error if file doesn't exist
+    }
+
+    await this.repository.update({
+      where: { id: employeeId },
+      data: { profilePicture: null }
+    });
+
+    return { message: 'Profile picture deleted successfully' };
+  }
 }

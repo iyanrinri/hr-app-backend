@@ -15,15 +15,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmployeeController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const platform_express_1 = require("@nestjs/platform-express");
 const employee_service_1 = require("../services/employee.service");
 const create_employee_dto_1 = require("../dto/create-employee.dto");
 const update_employee_dto_1 = require("../dto/update-employee.dto");
+const update_employee_profile_dto_1 = require("../dto/update-employee-profile.dto");
+const employee_profile_response_dto_1 = require("../dto/employee-profile-response.dto");
+const upload_profile_picture_dto_1 = require("../dto/upload-profile-picture.dto");
 const find_all_employees_dto_1 = require("../dto/find-all-employees.dto");
 const employee_hierarchy_dto_1 = require("../dto/employee-hierarchy.dto");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../../auth/guards/roles.guard");
 const roles_decorator_1 = require("../../../common/decorators/roles.decorator");
 const client_1 = require("@prisma/client");
+const file_upload_util_1 = require("../../../common/utils/file-upload.util");
 let EmployeeController = class EmployeeController {
     employeeService;
     constructor(employeeService) {
@@ -61,6 +66,54 @@ let EmployeeController = class EmployeeController {
     }
     getManagementChain(employeeId) {
         return this.employeeService.getManagementChain(BigInt(employeeId));
+    }
+    async getMyProfile(req) {
+        const employee = await this.employeeService.findByUserId(BigInt(req.user.sub));
+        if (!employee) {
+            throw new Error('Employee record not found for this user');
+        }
+        return this.employeeService.getProfile(employee.id);
+    }
+    async updateMyProfile(req, updateEmployeeProfileDto) {
+        const employee = await this.employeeService.findByUserId(BigInt(req.user.sub));
+        if (!employee) {
+            throw new Error('Employee record not found for this user');
+        }
+        return this.employeeService.updateProfile(employee.id, updateEmployeeProfileDto);
+    }
+    getEmployeeProfile(employeeId) {
+        return this.employeeService.getProfile(BigInt(employeeId));
+    }
+    updateEmployeeProfile(employeeId, updateEmployeeProfileDto) {
+        return this.employeeService.updateProfile(BigInt(employeeId), updateEmployeeProfileDto);
+    }
+    async uploadMyProfilePicture(req, file) {
+        if (!file) {
+            throw new common_1.BadRequestException('No file uploaded');
+        }
+        const employee = await this.employeeService.findByUserId(BigInt(req.user.sub));
+        if (!employee) {
+            throw new common_1.BadRequestException('Employee record not found for this user');
+        }
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        return this.employeeService.uploadProfilePicture(employee.id, file.filename, baseUrl);
+    }
+    async deleteMyProfilePicture(req) {
+        const employee = await this.employeeService.findByUserId(BigInt(req.user.sub));
+        if (!employee) {
+            throw new common_1.BadRequestException('Employee record not found for this user');
+        }
+        return this.employeeService.deleteProfilePicture(employee.id);
+    }
+    async uploadEmployeeProfilePicture(employeeId, req, file) {
+        if (!file) {
+            throw new common_1.BadRequestException('No file uploaded');
+        }
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        return this.employeeService.uploadProfilePicture(BigInt(employeeId), file.filename, baseUrl);
+    }
+    deleteEmployeeProfilePicture(employeeId) {
+        return this.employeeService.deleteProfilePicture(BigInt(employeeId));
     }
 };
 exports.EmployeeController = EmployeeController;
@@ -318,6 +371,167 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], EmployeeController.prototype, "getManagementChain", null);
+__decorate([
+    (0, common_1.Get)('profile/me'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get my employee profile (all roles)' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Employee profile retrieved successfully',
+        type: employee_profile_response_dto_1.EmployeeProfileResponseDto
+    }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee profile not found' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR, client_1.Role.MANAGER, client_1.Role.EMPLOYEE),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], EmployeeController.prototype, "getMyProfile", null);
+__decorate([
+    (0, common_1.Patch)('profile/me'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update my employee profile (all roles)' }),
+    (0, swagger_1.ApiBody)({ type: update_employee_profile_dto_1.UpdateEmployeeProfileDto }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Employee profile updated successfully',
+        type: employee_profile_response_dto_1.EmployeeProfileResponseDto
+    }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee profile not found' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR, client_1.Role.MANAGER, client_1.Role.EMPLOYEE),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, update_employee_profile_dto_1.UpdateEmployeeProfileDto]),
+    __metadata("design:returntype", Promise)
+], EmployeeController.prototype, "updateMyProfile", null);
+__decorate([
+    (0, common_1.Get)(':id/profile'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get employee profile by ID (SUPER/HR only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Employee ID' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Employee profile retrieved successfully',
+        type: employee_profile_response_dto_1.EmployeeProfileResponseDto
+    }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee not found' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], EmployeeController.prototype, "getEmployeeProfile", null);
+__decorate([
+    (0, common_1.Patch)(':id/profile'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update employee profile by ID (SUPER/HR only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Employee ID' }),
+    (0, swagger_1.ApiBody)({ type: update_employee_profile_dto_1.UpdateEmployeeProfileDto }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Employee profile updated successfully',
+        type: employee_profile_response_dto_1.EmployeeProfileResponseDto
+    }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee not found' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, update_employee_profile_dto_1.UpdateEmployeeProfileDto]),
+    __metadata("design:returntype", void 0)
+], EmployeeController.prototype, "updateEmployeeProfile", null);
+__decorate([
+    (0, common_1.Post)('profile/me/picture'),
+    (0, swagger_1.ApiOperation)({ summary: 'Upload my profile picture (all roles)' }),
+    (0, swagger_1.ApiConsumes)('multipart/form-data'),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            type: 'object',
+            properties: {
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                },
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Profile picture uploaded successfully',
+        type: upload_profile_picture_dto_1.UploadProfilePictureResponseDto
+    }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid file type or size' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee not found' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR, client_1.Role.MANAGER, client_1.Role.EMPLOYEE),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        storage: file_upload_util_1.profilePictureStorage,
+        fileFilter: file_upload_util_1.imageFileFilter,
+        limits: { fileSize: file_upload_util_1.maxFileSize },
+    })),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], EmployeeController.prototype, "uploadMyProfilePicture", null);
+__decorate([
+    (0, common_1.Delete)('profile/me/picture'),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete my profile picture (all roles)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Profile picture deleted successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'No profile picture to delete' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee not found' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR, client_1.Role.MANAGER, client_1.Role.EMPLOYEE),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], EmployeeController.prototype, "deleteMyProfilePicture", null);
+__decorate([
+    (0, common_1.Post)(':id/picture'),
+    (0, swagger_1.ApiOperation)({ summary: 'Upload employee profile picture by ID (SUPER/HR only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Employee ID' }),
+    (0, swagger_1.ApiConsumes)('multipart/form-data'),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            type: 'object',
+            properties: {
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                },
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Profile picture uploaded successfully',
+        type: upload_profile_picture_dto_1.UploadProfilePictureResponseDto
+    }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid file type or size' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee not found' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        storage: file_upload_util_1.profilePictureStorage,
+        fileFilter: file_upload_util_1.imageFileFilter,
+        limits: { fileSize: file_upload_util_1.maxFileSize },
+    })),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Request)()),
+    __param(2, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object, Object]),
+    __metadata("design:returntype", Promise)
+], EmployeeController.prototype, "uploadEmployeeProfilePicture", null);
+__decorate([
+    (0, common_1.Delete)(':id/picture'),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete employee profile picture by ID (SUPER/HR only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Employee ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Profile picture deleted successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'No profile picture to delete' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Employee not found' }),
+    (0, roles_decorator_1.Roles)(client_1.Role.SUPER, client_1.Role.HR),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], EmployeeController.prototype, "deleteEmployeeProfilePicture", null);
 exports.EmployeeController = EmployeeController = __decorate([
     (0, swagger_1.ApiTags)('employees'),
     (0, common_1.Controller)('employees'),

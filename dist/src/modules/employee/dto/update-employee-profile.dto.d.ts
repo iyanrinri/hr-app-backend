@@ -1,0 +1,32 @@
+import { Gender, MaritalStatus, EmploymentStatus } from '@prisma/client';
+export declare class UpdateEmployeeProfileDto {
+    firstName?: string;
+    lastName?: string;
+    employeeNumber?: string;
+    dateOfBirth?: string;
+    gender?: Gender;
+    maritalStatus?: MaritalStatus;
+    nationality?: string;
+    religion?: string;
+    bloodType?: string;
+    idNumber?: string;
+    taxNumber?: string;
+    phoneNumber?: string;
+    alternativePhone?: string;
+    address?: string;
+    city?: string;
+    province?: string;
+    postalCode?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    emergencyContactRelation?: string;
+    bankName?: string;
+    bankAccountNumber?: string;
+    bankAccountName?: string;
+    position?: string;
+    department?: string;
+    employmentStatus?: EmploymentStatus;
+    contractStartDate?: string;
+    contractEndDate?: string;
+    workLocation?: string;
+}

@@ -1,8 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, Request, Put } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiBody, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query, Request, Put, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiBody, ApiParam, ApiConsumes } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { EmployeeService } from '../services/employee.service';
 import { CreateEmployeeDto } from '../dto/create-employee.dto';
 import { UpdateEmployeeDto } from '../dto/update-employee.dto';
+import { UpdateEmployeeProfileDto } from '../dto/update-employee-profile.dto';
+import { EmployeeProfileResponseDto } from '../dto/employee-profile-response.dto';
+import { UploadProfilePictureResponseDto } from '../dto/upload-profile-picture.dto';
 import { FindAllEmployeesDto } from '../dto/find-all-employees.dto';
 import { PaginatedEmployeeResponseDto } from '../dto/paginated-response.dto';
 import { AssignSubordinatesDto, SetManagerDto, OrganizationTreeDto, EmployeeHierarchyResponseDto } from '../dto/employee-hierarchy.dto';
@@ -10,6 +14,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { profilePictureStorage, imageFileFilter, maxFileSize } from '../../../common/utils/file-upload.util';
 
 @ApiTags('employees')
 @Controller('employees')
@@ -250,5 +255,189 @@ export class EmployeeController {
   @Roles(Role.SUPER, Role.HR, Role.EMPLOYEE) // Allow employees to see their own chain
   getManagementChain(@Param('id', ParseIntPipe) employeeId: number) {
     return this.employeeService.getManagementChain(BigInt(employeeId));
+  }
+
+  @Get('profile/me')
+  @ApiOperation({ summary: 'Get my employee profile (all roles)' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Employee profile retrieved successfully',
+    type: EmployeeProfileResponseDto 
+  })
+  @ApiResponse({ status: 404, description: 'Employee profile not found' })
+  @Roles(Role.SUPER, Role.HR, Role.MANAGER, Role.EMPLOYEE)
+  async getMyProfile(@Request() req: any) {
+    const employee = await this.employeeService.findByUserId(BigInt(req.user.sub));
+    if (!employee) {
+      throw new Error('Employee record not found for this user');
+    }
+    return this.employeeService.getProfile(employee.id);
+  }
+
+  @Patch('profile/me')
+  @ApiOperation({ summary: 'Update my employee profile (all roles)' })
+  @ApiBody({ type: UpdateEmployeeProfileDto })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Employee profile updated successfully',
+    type: EmployeeProfileResponseDto 
+  })
+  @ApiResponse({ status: 404, description: 'Employee profile not found' })
+  @Roles(Role.SUPER, Role.HR, Role.MANAGER, Role.EMPLOYEE)
+  async updateMyProfile(
+    @Request() req: any,
+    @Body() updateEmployeeProfileDto: UpdateEmployeeProfileDto
+  ) {
+    const employee = await this.employeeService.findByUserId(BigInt(req.user.sub));
+    if (!employee) {
+      throw new Error('Employee record not found for this user');
+    }
+    return this.employeeService.updateProfile(employee.id, updateEmployeeProfileDto);
+  }
+
+  @Get(':id/profile')
+  @ApiOperation({ summary: 'Get employee profile by ID (SUPER/HR only)' })
+  @ApiParam({ name: 'id', description: 'Employee ID' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Employee profile retrieved successfully',
+    type: EmployeeProfileResponseDto 
+  })
+  @ApiResponse({ status: 404, description: 'Employee not found' })
+  @Roles(Role.SUPER, Role.HR)
+  getEmployeeProfile(@Param('id', ParseIntPipe) employeeId: number) {
+    return this.employeeService.getProfile(BigInt(employeeId));
+  }
+
+  @Patch(':id/profile')
+  @ApiOperation({ summary: 'Update employee profile by ID (SUPER/HR only)' })
+  @ApiParam({ name: 'id', description: 'Employee ID' })
+  @ApiBody({ type: UpdateEmployeeProfileDto })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Employee profile updated successfully',
+    type: EmployeeProfileResponseDto 
+  })
+  @ApiResponse({ status: 404, description: 'Employee not found' })
+  @Roles(Role.SUPER, Role.HR)
+  updateEmployeeProfile(
+    @Param('id', ParseIntPipe) employeeId: number,
+    @Body() updateEmployeeProfileDto: UpdateEmployeeProfileDto
+  ) {
+    return this.employeeService.updateProfile(BigInt(employeeId), updateEmployeeProfileDto);
+  }
+
+  @Post('profile/me/picture')
+  @ApiOperation({ summary: 'Upload my profile picture (all roles)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Profile picture uploaded successfully',
+    type: UploadProfilePictureResponseDto 
+  })
+  @ApiResponse({ status: 400, description: 'Invalid file type or size' })
+  @ApiResponse({ status: 404, description: 'Employee not found' })
+  @Roles(Role.SUPER, Role.HR, Role.MANAGER, Role.EMPLOYEE)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: profilePictureStorage,
+      fileFilter: imageFileFilter,
+      limits: { fileSize: maxFileSize },
+    }),
+  )
+  async uploadMyProfilePicture(
+    @Request() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    const employee = await this.employeeService.findByUserId(BigInt(req.user.sub));
+    if (!employee) {
+      throw new BadRequestException('Employee record not found for this user');
+    }
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    return this.employeeService.uploadProfilePicture(employee.id, file.filename, baseUrl);
+  }
+
+  @Delete('profile/me/picture')
+  @ApiOperation({ summary: 'Delete my profile picture (all roles)' })
+  @ApiResponse({ status: 200, description: 'Profile picture deleted successfully' })
+  @ApiResponse({ status: 400, description: 'No profile picture to delete' })
+  @ApiResponse({ status: 404, description: 'Employee not found' })
+  @Roles(Role.SUPER, Role.HR, Role.MANAGER, Role.EMPLOYEE)
+  async deleteMyProfilePicture(@Request() req: any) {
+    const employee = await this.employeeService.findByUserId(BigInt(req.user.sub));
+    if (!employee) {
+      throw new BadRequestException('Employee record not found for this user');
+    }
+    return this.employeeService.deleteProfilePicture(employee.id);
+  }
+
+  @Post(':id/picture')
+  @ApiOperation({ summary: 'Upload employee profile picture by ID (SUPER/HR only)' })
+  @ApiParam({ name: 'id', description: 'Employee ID' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Profile picture uploaded successfully',
+    type: UploadProfilePictureResponseDto 
+  })
+  @ApiResponse({ status: 400, description: 'Invalid file type or size' })
+  @ApiResponse({ status: 404, description: 'Employee not found' })
+  @Roles(Role.SUPER, Role.HR)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: profilePictureStorage,
+      fileFilter: imageFileFilter,
+      limits: { fileSize: maxFileSize },
+    }),
+  )
+  async uploadEmployeeProfilePicture(
+    @Param('id', ParseIntPipe) employeeId: number,
+    @Request() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    return this.employeeService.uploadProfilePicture(BigInt(employeeId), file.filename, baseUrl);
+  }
+
+  @Delete(':id/picture')
+  @ApiOperation({ summary: 'Delete employee profile picture by ID (SUPER/HR only)' })
+  @ApiParam({ name: 'id', description: 'Employee ID' })
+  @ApiResponse({ status: 200, description: 'Profile picture deleted successfully' })
+  @ApiResponse({ status: 400, description: 'No profile picture to delete' })
+  @ApiResponse({ status: 404, description: 'Employee not found' })
+  @Roles(Role.SUPER, Role.HR)
+  deleteEmployeeProfilePicture(@Param('id', ParseIntPipe) employeeId: number) {
+    return this.employeeService.deleteProfilePicture(BigInt(employeeId));
   }
 }

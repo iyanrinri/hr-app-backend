@@ -5,11 +5,15 @@ const app_module_1 = require("./app.module");
 const swagger_1 = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const exclude_password_interceptor_1 = require("./common/interceptors/exclude-password.interceptor");
+const path_1 = require("path");
 BigInt.prototype.toJSON = function () {
     return this.toString();
 };
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.useStaticAssets((0, path_1.join)(process.cwd(), 'uploads'), {
+        prefix: '/uploads/',
+    });
     app.useGlobalPipes(new common_1.ValidationPipe({
         transform: true,
         whitelist: true,

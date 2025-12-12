@@ -158,7 +158,7 @@ BEGIN
   SELECT 
     e.id,
     e."baseSalary",
-    e."hireDate",
+    e."joinDate",
     true,
     COALESCE(first_user_id, 1),
     CURRENT_TIMESTAMP,
@@ -173,7 +173,7 @@ BEGIN
     'INITIAL',
     e."baseSalary",
     'Initial salary setup - migrated from employees table',
-    e."hireDate",
+    e."joinDate",
     CURRENT_TIMESTAMP
   FROM "employees" e
   WHERE e."baseSalary" IS NOT NULL;
