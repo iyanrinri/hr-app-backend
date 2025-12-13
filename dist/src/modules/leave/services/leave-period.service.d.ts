@@ -11,9 +11,9 @@ export declare class LeavePeriodService {
         updatedAt: Date;
         name: string;
         description: string | null;
+        createdBy: bigint;
         endDate: Date;
         isActive: boolean;
-        createdBy: bigint;
         startDate: Date;
     }>;
     findAll(params?: {

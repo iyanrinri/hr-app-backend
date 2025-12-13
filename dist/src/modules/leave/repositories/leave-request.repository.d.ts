@@ -210,9 +210,9 @@ export declare class LeaveRequestRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
+            createdBy: bigint;
             endDate: Date;
             isActive: boolean;
-            createdBy: bigint;
             startDate: Date;
         };
         leaveTypeConfig: {
@@ -220,8 +220,8 @@ export declare class LeaveRequestRepository {
             createdAt: Date;
             updatedAt: Date;
             name: string;
-            type: import("@prisma/client").$Enums.LeaveType;
             description: string | null;
+            type: import("@prisma/client").$Enums.LeaveType;
             isActive: boolean;
             defaultQuota: number;
             maxConsecutiveDays: number | null;

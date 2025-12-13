@@ -83,9 +83,9 @@ export declare class LeaveBalanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
+            createdBy: bigint;
             endDate: Date;
             isActive: boolean;
-            createdBy: bigint;
             startDate: Date;
         };
         leaveTypeConfig: {
@@ -93,8 +93,8 @@ export declare class LeaveBalanceRepository {
             createdAt: Date;
             updatedAt: Date;
             name: string;
-            type: import("@prisma/client").$Enums.LeaveType;
             description: string | null;
+            type: import("@prisma/client").$Enums.LeaveType;
             isActive: boolean;
             defaultQuota: number;
             maxConsecutiveDays: number | null;
@@ -122,9 +122,9 @@ export declare class LeaveBalanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
+            createdBy: bigint;
             endDate: Date;
             isActive: boolean;
-            createdBy: bigint;
             startDate: Date;
         };
         leaveTypeConfig: {
@@ -132,8 +132,8 @@ export declare class LeaveBalanceRepository {
             createdAt: Date;
             updatedAt: Date;
             name: string;
-            type: import("@prisma/client").$Enums.LeaveType;
             description: string | null;
+            type: import("@prisma/client").$Enums.LeaveType;
             isActive: boolean;
             defaultQuota: number;
             maxConsecutiveDays: number | null;
@@ -209,9 +209,9 @@ export declare class LeaveBalanceRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
+        createdBy: bigint;
         endDate: Date;
         isActive: boolean;
-        createdBy: bigint;
         startDate: Date;
     } | null>;
     updateQuotas(employeeId: bigint, leavePeriodId: bigint, leaveTypeConfigId: bigint, usedDays: number): Promise<{
@@ -233,9 +233,9 @@ export declare class LeaveBalanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
+            createdBy: bigint;
             endDate: Date;
             isActive: boolean;
-            createdBy: bigint;
             startDate: Date;
         };
         leaveTypeConfig: {
@@ -243,8 +243,8 @@ export declare class LeaveBalanceRepository {
             createdAt: Date;
             updatedAt: Date;
             name: string;
-            type: import("@prisma/client").$Enums.LeaveType;
             description: string | null;
+            type: import("@prisma/client").$Enums.LeaveType;
             isActive: boolean;
             defaultQuota: number;
             maxConsecutiveDays: number | null;

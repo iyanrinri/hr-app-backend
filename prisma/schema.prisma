@@ -17,6 +17,7 @@ model User {
   updatedAt         DateTime  @updatedAt
   employee          Employee?
   processedPayrolls Payroll[]
+  generatedPayslips Payslip[]
 
   @@map("users")
 }
@@ -187,8 +188,61 @@ model Payroll {
   updatedAt         DateTime @updatedAt
   employee          Employee @relation(fields: [employeeId], references: [id])
   processor         User?    @relation(fields: [processedBy], references: [id])
+  payslip           Payslip?
 
   @@map("payrolls")
+}
+
+model Payslip {
+  id                            BigInt   @id @default(autoincrement())
+  payrollId                     BigInt   @unique
+  
+  // Income
+  grossSalary                   Decimal
+  overtimePay                   Decimal  @default(0)
+  bonuses                       Decimal  @default(0)
+  allowances                    Decimal  @default(0)
+  
+  // Deductions
+  taxAmount                     Decimal  @default(0)  // PPh 21
+  bpjsKesehatanEmployee         Decimal  @default(0)
+  bpjsKesehatanCompany          Decimal  @default(0)
+  bpjsKetenagakerjaanEmployee   Decimal  @default(0)  // JHT + JP + JKK + JKM
+  bpjsKetenagakerjaanCompany    Decimal  @default(0)
+  otherDeductions               Decimal  @default(0)
+  
+  // Take home
+  takeHomePay                   Decimal
+  
+  // Tax calculation details (JSON)
+  taxCalculationDetails         Json?    // PTKP, taxable income, brackets
+  
+  // Metadata
+  generatedAt                   DateTime @default(now())
+  generatedBy                   BigInt
+  pdfUrl                        String?
+  
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+  
+  payroll                       Payroll  @relation(fields: [payrollId], references: [id], onDelete: Cascade)
+  generator                     User     @relation(fields: [generatedBy], references: [id])
+  deductions                    PayrollDeduction[]
+  
+  @@map("payslips")
+}
+
+model PayrollDeduction {
+  id              BigInt   @id @default(autoincrement())
+  payslipId       BigInt
+  type            String   // TAX, BPJS_KESEHATAN, BPJS_TK, LOAN, OTHER
+  description     String
+  amount          Decimal
+  createdAt       DateTime @default(now())
+  
+  payslip         Payslip  @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+  
+  @@map("payroll_deductions")
 }
 
 model Setting {
@@ -266,6 +320,9 @@ enum SettingCategory {
   ATTENDANCE
   LEAVE
   PAYROLL
+  TAX_PPH21
+  BPJS_KESEHATAN
+  BPJS_KETENAGAKERJAAN
   NOTIFICATION
   SECURITY
   INTEGRATION

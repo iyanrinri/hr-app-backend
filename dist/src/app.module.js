@@ -24,6 +24,7 @@ const payroll_module_1 = require("./modules/payroll/payroll.module");
 const notification_module_1 = require("./common/modules/notification.module");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
+const payslip_module_1 = require("./modules/payslip/payslip.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -44,6 +45,7 @@ exports.AppModule = AppModule = __decorate([
             salary_module_1.SalaryModule,
             overtime_module_1.OvertimeModule,
             payroll_module_1.PayrollModule,
+            payslip_module_1.PayslipModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

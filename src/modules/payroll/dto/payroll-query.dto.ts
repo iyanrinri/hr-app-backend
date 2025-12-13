@@ -72,8 +72,10 @@ export class PayrollQueryDto {
     default: 1,
   })
   @IsOptional()
-  @IsNumberString()
-  @Transform(({ value }) => parseInt(value) || 1)
+  @Transform(({ value }) => {
+    const parsed = parseInt(value);
+    return isNaN(parsed) ? 1 : parsed;
+  })
   page?: number;
 
   @ApiPropertyOptional({
@@ -82,8 +84,10 @@ export class PayrollQueryDto {
     default: 10,
   })
   @IsOptional()
-  @IsNumberString()
-  @Transform(({ value }) => parseInt(value) || 10)
+  @Transform(({ value }) => {
+    const parsed = parseInt(value);
+    return isNaN(parsed) ? 10 : parsed;
+  })
   limit?: number;
 
   @ApiPropertyOptional({

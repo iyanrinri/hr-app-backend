@@ -55,9 +55,9 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
+            createdBy: bigint;
             endDate: Date;
             isActive: boolean;
-            createdBy: bigint;
             startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;
@@ -135,9 +135,9 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
+            createdBy: bigint;
             endDate: Date;
             isActive: boolean;
-            createdBy: bigint;
             startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;
@@ -218,9 +218,9 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
+            createdBy: bigint;
             endDate: Date;
             isActive: boolean;
-            createdBy: bigint;
             startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;
@@ -461,9 +461,9 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
+            createdBy: bigint;
             endDate: Date;
             isActive: boolean;
-            createdBy: bigint;
             startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;
@@ -602,9 +602,9 @@ export declare class AttendanceRepository {
                 updatedAt: Date;
                 name: string;
                 description: string | null;
+                createdBy: bigint;
                 endDate: Date;
                 isActive: boolean;
-                createdBy: bigint;
                 startDate: Date;
                 workingDaysPerWeek: number;
                 workingHoursPerDay: number;
@@ -636,9 +636,9 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
+            createdBy: bigint;
             endDate: Date;
             isActive: boolean;
-            createdBy: bigint;
             startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;
@@ -697,9 +697,9 @@ export declare class AttendanceRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
+            createdBy: bigint;
             endDate: Date;
             isActive: boolean;
-            createdBy: bigint;
             startDate: Date;
             workingDaysPerWeek: number;
             workingHoursPerDay: number;

@@ -8,8 +8,8 @@ export declare class LeaveTypeRepository {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        type: import("@prisma/client").$Enums.LeaveType;
         description: string | null;
+        type: import("@prisma/client").$Enums.LeaveType;
         isActive: boolean;
         defaultQuota: number;
         maxConsecutiveDays: number | null;
@@ -38,8 +38,8 @@ export declare class LeaveTypeRepository {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        type: import("@prisma/client").$Enums.LeaveType;
         description: string | null;
+        type: import("@prisma/client").$Enums.LeaveType;
         isActive: boolean;
         defaultQuota: number;
         maxConsecutiveDays: number | null;
@@ -74,9 +74,9 @@ export declare class LeaveTypeRepository {
             updatedAt: Date;
             name: string;
             description: string | null;
+            createdBy: bigint;
             endDate: Date;
             isActive: boolean;
-            createdBy: bigint;
             startDate: Date;
         };
     } & {
@@ -84,8 +84,8 @@ export declare class LeaveTypeRepository {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        type: import("@prisma/client").$Enums.LeaveType;
         description: string | null;
+        type: import("@prisma/client").$Enums.LeaveType;
         isActive: boolean;
         defaultQuota: number;
         maxConsecutiveDays: number | null;
@@ -104,8 +104,8 @@ export declare class LeaveTypeRepository {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        type: import("@prisma/client").$Enums.LeaveType;
         description: string | null;
+        type: import("@prisma/client").$Enums.LeaveType;
         isActive: boolean;
         defaultQuota: number;
         maxConsecutiveDays: number | null;
@@ -119,8 +119,8 @@ export declare class LeaveTypeRepository {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        type: import("@prisma/client").$Enums.LeaveType;
         description: string | null;
+        type: import("@prisma/client").$Enums.LeaveType;
         isActive: boolean;
         defaultQuota: number;
         maxConsecutiveDays: number | null;
@@ -134,8 +134,8 @@ export declare class LeaveTypeRepository {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        type: import("@prisma/client").$Enums.LeaveType;
         description: string | null;
+        type: import("@prisma/client").$Enums.LeaveType;
         isActive: boolean;
         defaultQuota: number;
         maxConsecutiveDays: number | null;
@@ -149,8 +149,8 @@ export declare class LeaveTypeRepository {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        type: import("@prisma/client").$Enums.LeaveType;
         description: string | null;
+        type: import("@prisma/client").$Enums.LeaveType;
         isActive: boolean;
         defaultQuota: number;
         maxConsecutiveDays: number | null;

@@ -104,8 +104,10 @@ __decorate([
         default: 1,
     }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumberString)(),
-    (0, class_transformer_1.Transform)(({ value }) => parseInt(value) || 1),
+    (0, class_transformer_1.Transform)(({ value }) => {
+        const parsed = parseInt(value);
+        return isNaN(parsed) ? 1 : parsed;
+    }),
     __metadata("design:type", Number)
 ], PayrollQueryDto.prototype, "page", void 0);
 __decorate([
@@ -115,8 +117,10 @@ __decorate([
         default: 10,
     }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumberString)(),
-    (0, class_transformer_1.Transform)(({ value }) => parseInt(value) || 10),
+    (0, class_transformer_1.Transform)(({ value }) => {
+        const parsed = parseInt(value);
+        return isNaN(parsed) ? 10 : parsed;
+    }),
     __metadata("design:type", Number)
 ], PayrollQueryDto.prototype, "limit", void 0);
 __decorate([

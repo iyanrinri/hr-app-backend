@@ -15,6 +15,7 @@ import { PayrollModule } from './modules/payroll/payroll.module';
 import { NotificationModule } from './common/modules/notification.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { PayslipModule } from './modules/payslip/payslip.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AppService } from './app.service';
     SalaryModule,
     OvertimeModule,
     PayrollModule,
+    PayslipModule,
   ],
   controllers: [AppController],
   providers: [AppService],

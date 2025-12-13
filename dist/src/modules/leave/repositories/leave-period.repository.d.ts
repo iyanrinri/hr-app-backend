@@ -9,9 +9,9 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
+        createdBy: bigint;
         endDate: Date;
         isActive: boolean;
-        createdBy: bigint;
         startDate: Date;
     }>;
     findAll(params?: {
@@ -29,8 +29,8 @@ export declare class LeavePeriodRepository {
             createdAt: Date;
             updatedAt: Date;
             name: string;
-            type: import("@prisma/client").$Enums.LeaveType;
             description: string | null;
+            type: import("@prisma/client").$Enums.LeaveType;
             isActive: boolean;
             defaultQuota: number;
             maxConsecutiveDays: number | null;
@@ -45,9 +45,9 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
+        createdBy: bigint;
         endDate: Date;
         isActive: boolean;
-        createdBy: bigint;
         startDate: Date;
     })[]>;
     findById(id: bigint): Promise<({
@@ -75,8 +75,8 @@ export declare class LeavePeriodRepository {
             createdAt: Date;
             updatedAt: Date;
             name: string;
-            type: import("@prisma/client").$Enums.LeaveType;
             description: string | null;
+            type: import("@prisma/client").$Enums.LeaveType;
             isActive: boolean;
             defaultQuota: number;
             maxConsecutiveDays: number | null;
@@ -91,9 +91,9 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
+        createdBy: bigint;
         endDate: Date;
         isActive: boolean;
-        createdBy: bigint;
         startDate: Date;
     }) | null>;
     findActive(): Promise<({
@@ -102,8 +102,8 @@ export declare class LeavePeriodRepository {
             createdAt: Date;
             updatedAt: Date;
             name: string;
-            type: import("@prisma/client").$Enums.LeaveType;
             description: string | null;
+            type: import("@prisma/client").$Enums.LeaveType;
             isActive: boolean;
             defaultQuota: number;
             maxConsecutiveDays: number | null;
@@ -118,9 +118,9 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
+        createdBy: bigint;
         endDate: Date;
         isActive: boolean;
-        createdBy: bigint;
         startDate: Date;
     }) | null>;
     update(id: bigint, data: Prisma.LeavePeriodUpdateInput): Promise<{
@@ -129,9 +129,9 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
+        createdBy: bigint;
         endDate: Date;
         isActive: boolean;
-        createdBy: bigint;
         startDate: Date;
     }>;
     delete(id: bigint): Promise<{
@@ -140,9 +140,9 @@ export declare class LeavePeriodRepository {
         updatedAt: Date;
         name: string;
         description: string | null;
+        createdBy: bigint;
         endDate: Date;
         isActive: boolean;
-        createdBy: bigint;
         startDate: Date;
     }>;
     count(where?: Prisma.LeavePeriodWhereInput): Promise<number>;
